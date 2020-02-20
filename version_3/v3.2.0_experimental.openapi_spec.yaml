@@ -2,14 +2,14 @@ openapi: "3.0.0"
 
 x-headers:
   - key: blend-api-version
-    value: 3.1.0
+    value: 3.2.0
   - key: cache-control
     value: no-cache
   - key: Content-Type
     value: application/json
 
 info:
-  version: 3.1.0
+  version: 3.2.0
   title: Blend API
 
 servers:
@@ -2627,7 +2627,7 @@ MAolJUVPRgo='
     patch:
       operationId: Patch Document Data
       summary: Update a Document's Export Status
-      description: Upate a document's export status
+      description: Update a document's export status
       tags:
         - Documents
       parameters:
@@ -2661,6 +2661,52 @@ MAolJUVPRgo='
       responses:
         200:
           description: Successful Update
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /documents/{id}/metadata:
+    get:
+      operationId: Get Document Metadata
+      summary: Get Document Metadata
+      description: Get all metadata associated with a document
+      tags:
+        - Documents
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The UUID of the Document in Blend's system. The static identifier that should be used to connect the document's identity across Blend and external integrations.
+          example: '9250f84b-c2a1-4cab-b265-bd720685c361'
+      responses:
+        200:
+          description: Document Metadata
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/DocumentSchema'
         400:
           description: Invalid Request
           content:
@@ -4132,7 +4178,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of loans data.
-      summary: List Loan Reporting Data
+      summary: Retrieve Basic Loan Data
       operationId: Get Loans Report
       parameters:
         - name: startDate
@@ -4238,7 +4284,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of borrower data.
-      summary: List Borrowers
+      summary: Retrieve Borrower Users
       operationId: Get Borrowers Report
       parameters:
         - name: activationStartDate
@@ -4299,7 +4345,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of lenders data.
-      summary: List Lender Reporting Data
+      summary: Retrieve Lender Users
       operationId: Get Lenders Report
       parameters:
         - name: activationStartDate
@@ -4360,7 +4406,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of lenders statistic data.
-      summary: List Lender Statistics
+      summary: Retrieve Lender Stats
       operationId: Get Lenders Statistics Report
       parameters:
         - name: activationStartDate
@@ -4421,8 +4467,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: This captures only the borrower's activity within Blend on the process-level.
-      summary: List Borrower Activities
-
+      summary: Retrieve Borrower Workflows
       operationId: Get Activities Report
       parameters:
         - name: startDate
@@ -4483,7 +4528,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of nps data.
-      summary: List NPS Data
+      summary: Retrieve NPS and Comments
       operationId: Get NPS Report
       parameters:
         - name: startDate
@@ -4505,7 +4550,7 @@ MAolJUVPRgo='
         - name: limit
           in: query
           required: false
-          description: The number of loans to be returned for this API call. Maximum is 10,000
+          description: The number of nps to be returned for this API call. Maximum is 10,000
           schema:
             type: integer
           example: 100
@@ -4544,7 +4589,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of documents data.
-      summary: List Documents Data
+      summary: Retrieve Document Metadata
       operationId: Get Documents Report
       parameters:
         - name: type
@@ -4611,14 +4656,14 @@ MAolJUVPRgo='
     get:
       tags:
         - Reporting
-      description: Returns a paginated list of data verification usage data.
-      summary: List Data Verification Usage Data
+      description: Returns a paginated list of connectivity metrics data.
+      summary: Retrieve Connectivity Metrics
       operationId: Get Data Verification Usage Report
       parameters:
         - name: startDate
           in: query
           required: false
-          description: Gets metrics for data verification features on or after this date
+          description: Gets metrics for connectivity data on or after this date
           schema:
             type: string
             format: date
@@ -4626,7 +4671,7 @@ MAolJUVPRgo='
         - name: endDate
           in: query
           required: false
-          description: Gets metrics for data verification features on or before this date
+          description: Gets metrics for connectivity data on or before this date
           schema:
             type: string
             format: date
@@ -4654,16 +4699,16 @@ MAolJUVPRgo='
                 type: object
                 properties:
                   dataVerificationUsage:
-                    description: An array of data verification metrics
+                    description: An array of connectivity metrics
                     type: array
                     items:
                       $ref: '#/components/schemas/ReportingDataVerificationUsageSchema'
                   nextCursor:
-                    description: Cursor to use to get to the next set of data verification usage data
+                    description: Cursor to use to get to the next set of connectivity metrics
                     type: string
                     example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
                   prevCursor:
-                    description: Cursor to use to get to the previous set of data verification usage data
+                    description: Cursor to use to get to the previous set of connectivity metrics
                     type: string
                     example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
         400:
@@ -4673,7 +4718,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Returns a paginated list of loan pipeline data.
-      summary: List Loan Pipeline Data
+      summary: Retrieve Loan Pipeline
       operationId: Get Loan Pipeline Report
       parameters:
         - name: startDate
@@ -4742,7 +4787,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Returns a paginated list of unassigned loans data.
-      summary: List Unassigned Loans Data
+      summary: Retrieve Unassigned Loans
       operationId: Get Unassigned Loans Report
       parameters:
         - name: startDate
@@ -4803,7 +4848,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Returns a paginated list of loan statistic data.
-      summary: List Loan Statistic Data
+      summary: Retrieve Loan Statistics
       operationId: Get Loan Statistics Report
       parameters:
         - name: startDate
@@ -4850,6 +4895,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of borrower application funnel data.
+      summary: Retrieve Borrower Application Funnel
       operationId: Get Borrower Application Funnel Report
       parameters:
         - name: startDate
@@ -4910,6 +4956,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of lender batch statistic data.
+      summary: Retrieve Lender Batch Statistics
       operationId: Get Lender Batch Statistic Report
       parameters:
         - name: startDate
@@ -4970,6 +5017,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of follow-ups usage data.
+      summary: Retrieve Follow Ups Metrics
       operationId: Get Follow-ups Usage Report
       parameters:
         - name: startDate
