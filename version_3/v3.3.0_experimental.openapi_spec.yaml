@@ -63,6 +63,7 @@ paths:
             $ref: '#/components/schemas/ApplicationId'
         - in: query
           name: format
+          required: true
           description: The requested data format for the response
           example: 'fannie'
           schema:
@@ -1213,6 +1214,137 @@ paths:
                 $ref: '#/components/schemas/ApplicationNotFoundErrorSchema'
         '500':
           description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /home-lending/applications/{id}/itp:
+    get:
+      operationId: Get Intent to Proceed
+      summary: Get Intent to Proceed
+      description: Get Intent to Proceed (ITP) data. This endpoint will return information about the state of ITP on an application once the ITP workflow has been added or ITP has been given.
+      tags:
+        - Home Lending - Applications
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: guid
+          description: The ID of the Blend Application that ITP data is being retrieved for
+          example: 'bf88d29e-2b69-44d3-8953-59d720ce996a'
+      responses:
+        200:
+          description: Intent to Proceed data
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/GetITPResponse'
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Intent to Proceed Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ITPNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+    post:
+      operationId: Post Intent to Proceed
+      summary: Post Intent to Proceed
+      description: Post Intent to Proceed (ITP). This endpoint will add an ITP workflow to the specified borrower on an application, or mark ITP as complete if `givenAt` is supplied. Returns 409 Conflict if ITP workflow already exists for the specified `borrowerId`, or if ITP has already been given on the application `borrowerId` belongs to.
+      tags:
+        - Home Lending - Applications
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: guid
+          description: The ID of the Blend application `borrowerId` belongs to.
+          example: '46a1f64d-286e-4fb3-b0ca-79606cba9145'
+      requestBody:
+        description: Post Intent to Proceed Body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - borrowerId
+              properties:
+                borrowerId:
+                  type: string
+                  format: guid
+                  description: Party ID of borrower to either add ITP workflow for, or if `givenAt` is supplied, mark ITP as given by.
+                  example: '52843951-c41f-44b7-a33c-2e499ce75029'
+                givenAt:
+                  type: string
+                  format: date-time
+                  description: The ISO 8601 datetime when the specified `borrowerId` confirmed their Intent to Proceed.
+                  example: '2020-05-03T12:06:21.789Z'
+      responses:
+        200:
+          description: Intent to Proceed data
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/GetITPResponse'
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ApplicationNotFoundErrorSchema'
+        409:
+            description: Conflict. Returned if ITP workflow already exists for a borrower, or ITP has already been given on the application the borrower belongs to.
+            content:
+              application/json; charset=utf-8:
+                schema:
+                  $ref: '#/components/schemas/ConflictErrorSchema'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
           content:
             application/json; charset=utf-8:
               schema:
@@ -2813,198 +2945,41 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
-  /borrowers:
-    post:
-      operationId: Post Borrower
-      summary: Add a Borrower to an Application
-      description: Add a borrower to a specific loan. You can only add non-primary borrowers through this endpoint.
-      tags:
-        - Borrowers
-      requestBody:
-        description: Borrower parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-                - email
-              properties:
-                name:
-                  $ref: '#/components/schemas/NameSchema'
-                email:
-                  type: string
-                  example: 'johnhernandez@mail.com'
-                taxpayerIdentifier:
-                  $ref: '#/components/schemas/TaxpayerIdentifierSchema'
-                dateOfBirth:
-                  type: string
-                  format: date-time
-                  description: UTC Timestamp of Date of Birth
-                  example: '2018-10-03T20:07:27+00:00'
-                homePhone:
-                  type: integer
-                  description: Nine-digit home phone number
-                  example: '1112223333'
-                currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
-                loanId:
-                  $ref: '#/components/schemas/ApplicationId'
-                fileNumber:
-                  type: integer
-                  example: 1
-                filePosition:
-                  type: number
-                  example: 1
-                  enum: [1, 2]
-                econsent:
-                  $ref: '#/components/schemas/PostEconsentSchema'
-            example:
-              name:
-                firstName: 'John'
-                lastName: 'Hernandez'
-              email: 'john@email.com'
-              loanId: 'aa9fdaa2-7bf3-4411-a836-c2a46117f5c3'
-      responses:
-        200:
-          description: Created Borrower
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/PartyResponseSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-  /borrowers/{id}:
-    patch:
-      operationId: Patch Borrower
-      summary: Update a Borrower on an Application
-      description: Update a borrower's details.
-      tags:
-        - Borrowers
+  /tax-transcripts:
+    get:
       parameters:
-        - in: path
-          name: id
+        - name: documentId
+          in: query
           required: true
+          description: The documentId of the 4506T form
           schema:
-            type: string
-          description: Borrower Id
-          example: '9250f84b-c2a1-4cab-b265-bd720685c361'
-      requestBody:
-        description: Borrower update parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  $ref: '#/components/schemas/NameSchema'
-                email:
-                  type: string
-                  example: 'johnhernandez@mail.com'
-                taxpayerIdentifier:
-                  $ref: '#/components/schemas/TaxpayerIdentifierSchema'
-                dateOfBirth:
-                  type: string
-                  format: date-time
-                  description: UTC Timestamp of Date of Birth
-                  example: '2018-10-03T20:07:27+00:00'
-                homePhone:
-                  type: integer
-                  description: Nine-digit home phone number
-                  example: '1112223333'
-                currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
-                econsent:
-                  $ref: '#/components/schemas/PostEconsentSchema'
-            example:
-              name:
-                firstName: 'John'
-                lastName: 'Hernandez'
-              email: 'john@email.com'
-              taxpayerIdentifier:
-                value: '000113933'
-                type: 'SOCIAL_SECURITY_NUMBER'
-              dateOfBirth: '2018-10-03T20:07:27+00:00'
-              homePhone: '1112223333'
-              propertyAddress:
-                streetAddressLine1: '415 Kearny St'
-                city: 'San Francisco'
-                state: 'CA'
-                zipCode: '94108'
-      responses:
-        200:
-          description: Updated Borrower
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/PartyResponseSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-    delete:
-      operationId: Delete Borrower
-      summary: Remove a Borrower from an Application
-      description: Delete borrower from a specific loan.
+            $ref: '#/components/schemas/DocumentId'
+      operationId: Get Tax Transcripts
+      summary: Gets Tax Transcripts structured data for a particular 4506T document
+      description: Gets Tax Transcripts structured data for a particular 4506T document
       tags:
-        - Borrowers
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Borrower Id
-          example: '9250f84b-c2a1-4cab-b265-bd720685c361'
+        - Tax transcripts
       responses:
         200:
-          description: Successful Deletion
-        401:
+          description: Tax transcript data was successfully retrieved
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/TaxTranscriptsSchema'
+        400:
           description: Invalid Request
           content:
             application/json; charset=utf-8:
               schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        404:
+          description: Application Not Found
           content:
             application/json; charset=utf-8:
               schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+                $ref: '#/components/schemas/ApplicationNotFoundErrorSchema'
         500:
-          description: Unexpected Error
+          description: Internal server error
           content:
             application/json; charset=utf-8:
               schema:
@@ -3022,7 +2997,7 @@ MAolJUVPRgo='
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DisclosuresPackagePostSchema'
+              $ref: '#/components/schemas/PackagePostSchema'
             example:
       responses:
         200:
@@ -3035,7 +3010,7 @@ MAolJUVPRgo='
                   packages:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DisclosuresPackageResponseSchema'
+                      $ref: '#/components/schemas/PackageResponseSchema'
         400:
           description: Bad Request
           content:
@@ -3090,7 +3065,7 @@ MAolJUVPRgo='
                   packages:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DisclosuresPackageResponseSchema'
+                      $ref: '#/components/schemas/PackageResponseSchema'
         400:
           description: Bad Request
           content:
@@ -3120,7 +3095,7 @@ MAolJUVPRgo='
           required: true
           schema:
             type: string
-          description: Application UUID
+          description: Package UUID
           example: '9250f84b-c2a1-4cab-b225-vd720685d221'
       responses:
         200:
@@ -3128,7 +3103,7 @@ MAolJUVPRgo='
           content:
             application/json; charset=utf-8:
               schema:
-                $ref: '#/components/schemas/DisclosuresPackageResponseSchema'
+                $ref: '#/components/schemas/PackageResponseSchema'
         400:
           description: Bad Request
           content:
@@ -3157,7 +3132,7 @@ MAolJUVPRgo='
           required: true
           schema:
             type: string
-          description: Application UUID
+          description: Package UUID
           example: '9250f84b-c2a1-4cab-b225-vj720685d221'
       requestBody:
         description: Update package body
@@ -3170,9 +3145,13 @@ MAolJUVPRgo='
                   type: string
                   enum: ['CANCELLED']
                   example: 'CANCELLED'
+                dueDate:
+                  type: string
+                  description: The ISO timestamp of when the lender has indicated a package is due
+                  example: '2020-04-19T02:35:00.789Z'
                 paperedAt:
                   type: string
-                  description: The ISO timestamp of when the lender decides to mail a disclosures package and not pursue electronic delivery
+                  description: The ISO timestamp of when the lender decides to mail a package and not pursue electronic delivery
                   example: '2020-04-19T21:04:08.859Z'
       responses:
         200:
@@ -4019,7 +3998,6 @@ MAolJUVPRgo='
                 - name
                 - email
                 - type
-                - verificationData
               properties:
                 applicationId:
                   $ref: '#/components/schemas/ApplicationId'
@@ -5197,6 +5175,67 @@ MAolJUVPRgo='
                     example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
         400:
           description: Invalid Request
+  /reporting/followups:
+    get:
+      tags:
+        - Reporting
+      description: Return a paginated list of individual followup data.
+      summary: Retrieve Followups data
+      operationId: Get Followups Report
+      parameters:
+        - name: createdAfter
+          in: query
+          required: false
+          description: Get all followups created after this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: createdBefore
+          in: query
+          required: false
+          description: Gets all followups created before this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: limit
+          in: query
+          required: false
+          description: The number of individual followups to be returned for this API call. Maximum is 10,000
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of paginated individual followups, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    description: An array of followups
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingFollowupsSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of followups
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of followups
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
   /reporting/borrower-application-funnel:
     get:
       tags:
@@ -5390,6 +5429,13 @@ MAolJUVPRgo='
           schema:
             type: string
           example: default
+        - name: limit
+          in: query
+          required: false
+          description: The page size to return. Default and maximum are 250.
+          schema:
+            type: integer
+            example: 25
         - name: status
           in: query
           required: false
@@ -5856,7 +5902,7 @@ MAolJUVPRgo='
     patch:
       operationId: Patch Closing
       summary: Update a Specific Closing
-      description: Updates a closing for a given loan. This endpoint can update multiple elements at once. Alternatively you can use the more specific POST endpoints to update one element at a time.
+      description: Updates a closing for a given loan. This endpoint can update multiple elements at once.
       tags:
         - Close
       parameters:
@@ -5910,173 +5956,11 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
-  /close/closings/{id}/title:
-    post:
-      operationId: Post Closing Title
-      summary: Set Title Agent
-      description: Sets the title agent for a closing.
-      tags:
-        - Close
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Closing ID
-          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ClosingTitlePostRequest'
-      responses:
-        200:
-          description: The closing has been updated.
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        404:
-          description: Closing Not Found
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/ClosingNotFoundError'
-        429:
-          description: Rate Limited
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/RateLimitedErrorSchema'
-        500:
-          description: Internal server error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-  /close/closings/{id}/closing-type:
-    post:
-      operationId: Post Closing Type
-      summary: Set Closing Type
-      description: Sets the closing type for a closing.
-      tags:
-        - Close
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Closing ID
-          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ClosingTypePostRequest'
-      responses:
-        200:
-          description: The closing has been updated.
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        404:
-          description: Closing Not Found
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/ClosingNotFoundError'
-        429:
-          description: Rate Limited
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/RateLimitedErrorSchema'
-        500:
-          description: Internal server error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-  /close/closings/{id}/closing-date:
-    post:
-      operationId: Post Closing Date
-      summary: Set Closing Date
-      description: Sets the closing date for a closing.
-      tags:
-        - Close
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Closing ID
-          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ClosingDatePostRequest'
-      responses:
-        200:
-          description: The closing has been updated.
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        404:
-          description: Closing Not Found
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/ClosingNotFoundError'
-        429:
-          description: Rate Limited
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/RateLimitedErrorSchema'
-        500:
-          description: Internal server error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
   /close/closings/{id}/documents:
-    post:
-      operationId: Post Closing Documents
-      summary: Add Closing Documents
-      description: Adds documents to a closing.
+    put:
+      operationId: Put Closing Documents
+      summary: Add or Update Closing Documents
+      description: Adds documents to a closing or updates their metadata, like their closing designation.
       tags:
         - Close
       parameters:
@@ -6092,10 +5976,122 @@ MAolJUVPRgo='
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClosingDocumentsPostRequest'
+              $ref: '#/components/schemas/ClosingDocumentsPutRequest'
       responses:
         200:
-          description: The closing has been updated.
+          description: The closing documents have been updated.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ClosingNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+    delete:
+      operationId: Delete Closing Documents
+      summary: Remove Closing Documents
+      description: Remove documents from a closing.
+      tags:
+        - Close
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Closing ID
+          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+        - in: query
+          name: ids
+          required: true
+          description: List of document IDs. The corresponding documents will be removed from the closing.
+          schema:
+            type: array
+            items:
+              type: string
+              description: Blend Document ID.
+              example: 'a5e69a6f-a522-4750-a740-7c748f71d4d5'
+          example: ['a5e69a6f-a522-4750-a740-7c748f71d4d5']
+      responses:
+        200:
+          description: The closing documents have been removed.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ClosingNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /close/closings/{id}/enote:
+    post:
+      operationId: Post Closing eNote
+      summary: Create eNote for Closing
+      description: Creates an eNote for a closing.
+      tags:
+        - Close
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Closing ID
+          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClosingENotePostRequest'
+      responses:
+        200:
+          description: The eNote has been created.
         400:
           description: Invalid Request
           content:
@@ -6141,6 +6137,12 @@ MAolJUVPRgo='
             type: string
           description: Closing ID
           example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClosingSendPostRequest'
       responses:
         200:
           description: The closing has been submitted.
@@ -6174,128 +6176,6 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
-  /itp/{applicationID}:
-    get:
-      operationId: Get Intent to Proceed
-      summary: Get Intent to Proceed
-      description: Get Intent to Proceed (ITP) data. This endpoint will return information about the state of ITP on a given application once the ITP workflow has been added for any borrower.
-      tags:
-        - Intent to Proceed
-      parameters:
-        - in: path
-          name: applicationID
-          required: true
-          schema:
-            type: string
-            format: guid
-          description: Application ID
-          example: 'bf88d29e-2b69-44d3-8953-59d720ce996a'
-      responses:
-        200:
-          description: Intent to Proceed data
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/GetITPResponse'
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        404:
-          description: Intent to Proceed Not Found
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/ITPNotFoundError'
-        429:
-          description: Rate Limited
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/RateLimitedErrorSchema'
-        500:
-          description: Internal server error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-    post:
-      operationId: Post Intent to Proceed
-      summary: Post Intent to Proceed
-      description: Post Intent to Proceed (ITP). This endpoint will add an ITP workflow to the specified borrower on an application.
-      tags:
-        - Intent to Proceed
-      parameters:
-        - in: path
-          name: applicationID
-          required: true
-          schema:
-            type: string
-            format: guid
-          description: Application ID
-          example: 'bf88d29e-2b69-44d3-8953-59d720ce996a'
-      requestBody:
-        description: Post Intent to Proceed Body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - borrowerId
-              properties:
-                borrowerId:
-                  type: string
-                  format: guid
-                  description: Party ID of borrower to add ITP workflow for.
-                  example: '52843951-c41f-44b7-a33c-2e499ce75029'
-      responses:
-        200:
-          description: Intent to Proceed data
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/GetITPResponse'
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        404:
-          description: Not Found
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/ApplicationNotFoundErrorSchema'
-        429:
-          description: Rate Limited
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/RateLimitedErrorSchema'
-        500:
-          description: Internal server error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-          
-        
 
 components:
   securitySchemes:
@@ -6321,6 +6201,14 @@ components:
       type: string
       description: The UUID of the application in Blend's system. The static identifier that should be used to connect the application's identity across Blend and external integrations.
       example: 'aa9fdaa2-7bf3-4411-a836-c2a46117f5c3'
+    DocumentId:
+      type: string
+      description: The UUID of the document in Blend's system. The static identifier that should be used to access documents across Blend and external integrations.
+      example: '300c9f4c-c90b-40a4-94d4-f2a718b9be61'
+    FollowUpId:
+      type: string
+      description: The UUID of the followup in Blend's system. The static identifier that should be used to access followups across Blend and external integrations.
+      example: '0057e00b-15fd-4d3a-8389-18a3ca937bee'   
     PartyId:
       type: string
       description: The UUID of the party in Blend's system. Equivalent to borrowerId
@@ -6344,7 +6232,7 @@ components:
     DocumentType:
       type: string
       description: Blend document type
-      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER', 'CLOSING_PACKAGE', 'PROMISSORY_NOTE', 'DEED_OF_TRUST', 'TITLE_DOCUMENT']
+      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER', 'CLOSING_PACKAGE', 'PROMISSORY_NOTE', 'DEED_OF_TRUST', 'TITLE_DOCUMENT', 'CLOSING_SETTLEMENT_ONLY']
     ApplicationExperienceType:
       type: string
       description: ENUM describing the type of borrower experience for this application
@@ -6463,6 +6351,32 @@ components:
           type: string
           description: UUID of the second applicant on a specific 1003
           example: '56632a12-1bd7-4014-8571-cff53c346738'
+    SignerInfoSchema:
+      type: object
+      required:
+        - name
+        - partyId
+        - status
+        - completedAt
+      properties:
+          name:
+            type: string
+            description: Full name of signer
+            example: 'Homer Loanseeker'
+          partyId:
+            type: string
+            format: guid
+            description: Party UUID of signer
+            example: 'fecbc83e-7fd2-421d-b21d-3b5634d5c5f0'
+          status:
+            type: string
+            description: Signing status
+            enum: ['SIGNED', 'DECLINED']
+          completedAt:
+            type: string
+            format: date-time
+            description: UTC Timestamp of signature
+            example: '2018-10-03T20:07:27+00:00'
     ApplicationRequestPartySchema:
       type: object
       required:
@@ -6886,6 +6800,8 @@ components:
           description: Document's hierarchical category
           enum: ['Assets', 'Borrower Info', 'Credit', 'Disclosures', 'Income', 'Letters of explanations', 'Miscellaneous', 'Property', 'Supporting Docs for Large Deposits']
           example: Supporting Docs for Large Deposits
+        signerInfo:
+          $ref: '#/components/schemas/SignerInfoSchema'
     DocumentRequestSchema:
       type: object
       required:
@@ -6987,8 +6903,22 @@ components:
         communityId:
           type: string
           example: '12345'
+        communityName:
+          type: string
+          description: The community that the home resides in
+          example: '2018 Market'
+        createdDate:
+          type: string
+          format: date-time
+          description: UTC timestamp of the application creation time
+          example: '2019-06-02T00:00:00.000Z'
         estimatedClosingDate:
           $ref: '#/components/schemas/EstimatedClosingDate'
+        exportedDate:
+          type: string
+          format: date-time
+          description: UTC timestamp of the application exported time
+          example: '2019-06-02T00:00:00.000Z'
         applicationExperienceType:
           $ref: '#/components/schemas/ApplicationExperienceType'
         assignees:
@@ -7090,14 +7020,14 @@ components:
           $ref: '#/components/schemas/ApplicationTemplateIdSchema'
         applicationSource:
           $ref: '#/components/schemas/ApplicationSourceSchema'
-    DisclosuresPackageSchema:
+    PackageSchema:
       type: object
       required:
         - id
         - status
       properties:
         id:
-          description: The UUID of the Disclosure Package in Blend's system. The static identifier that should be used to connect the package's identity across Blend and external integrations.
+          description: The UUID of the Package in Blend's system. The static identifier that should be used to connect the package's identity across Blend and external integrations.
           type: string
           example: 'c6dabfb0-8753-4a89-b8f0-af059ef869f7'
         losId:
@@ -7108,7 +7038,7 @@ components:
           type: string
         status:
           type: string
-          description: ENUM describing the status of the Disclosure Package
+          description: ENUM describing the status of the package
           enum: ['PENDING_ECONSENT', 'ELECTRONICALLY_DELIVERED', 'ELECTRONICALLY_VIEWED', 'ALL_SIGNATURES_COMPLETE', 'SENT_TO_PRINT', 'PHYSICALLY_MAILED', 'PHYSICALLY_DELIVERED', 'DECLINED', 'EXPIRED', 'RETRIEVED', 'NOT_ISSUED', 'ISSUING', 'FAILED_TO_ISSUE']
         displayStatus:
           type: string
@@ -7116,7 +7046,7 @@ components:
         sentDate:
           type: string
           format: date-time
-          description: UTC Timestamp of disclosures package sent date
+          description: UTC Timestamp of package sent date
           example: '2018-10-03T20:07:27+00:00'
         recipients:
           type: array
@@ -7166,14 +7096,14 @@ components:
                 example: 'BORROWER'
         documents:
           type: array
-          description: Array of document IDs associated with this Disclosures Package
+          description: Array of document IDs associated with this Package
           items:
             type: string
             description: The UUID of the Document in Blend's system. The static identifier that should be used to connect the document's identity across Blend and external integrations.
             example: 'c6dabfb0-8753-4a89-b8f0-af059ef869f7'
         name:
           type: string
-          description: Optional name field for disclosures package when type is 'other', forbidden otherwise
+          description: Optional name field for package when type is 'DOCUMENT_PACKAGE' or 'OTHER_DISCLOSURE,' forbidden otherwise
     TabSchema:
       type: object
       properties:
@@ -8017,7 +7947,7 @@ components:
         address:
           description: Employer address
           $ref: '#/components/schemas/AccountApplicationAddressSchema'
-    DisclosuresPackageBorrowerMetadataSchema:
+    PackageBorrowerMetadataSchema:
       type: object
       required:
         - id
@@ -8032,7 +7962,7 @@ components:
           type: string
           enum: ['WET_SIGN', 'VIEW_ONLY', 'ESIGN', 'EMBEDDED_FIELDS']
           example: 'WET_SIGN'
-    DisclosuresPackageThirdPartyRecipientMetadataSchema:
+    PackageThirdPartyRecipientMetadataSchema:
       type: object
       required:
         - id
@@ -8047,7 +7977,7 @@ components:
           type: string
           enum: [VIEW_ONLY', 'ESIGN', 'EMBEDDED_FIELDS']
           example: 'VIEW_ONLY'
-    DisclosuresPackageLenderMetadataSchema:
+    PackageLenderMetadataSchema:
       type: object
       properties:
         tabs:
@@ -8437,8 +8367,12 @@ components:
           example: 'Loan Officer'
         nmlsId:
           type: string
-          description: The NMLS ID of the lender (in UTC)
+          description: The NMLS ID of the lender
           example: '123123'
+        branchId:
+          type: string
+          description: The Branch ID entered into the lender user profile
+          example: 'Springfield'
         activationDatetime:
           type: string
           format: date-time
@@ -8614,6 +8548,10 @@ components:
           $ref: '#/components/schemas/ApplicationId'
         losPrimaryKey:
           $ref: '#/components/schemas/LosPrimaryKey'
+        crmPrimaryKey:
+          type: string
+          description: The CRM primary key of the loan in the LOS
+          example: 'a7s4P000000LsZNQA0F'
         assigneeName:
           type: string
           description: The first name of the primary assignee
@@ -8786,6 +8724,14 @@ components:
           format: date-time
           description: The timestamp the loan was created
           example: '2019-10-29T04:25:30.000Z'
+        assigneeName:
+          type: string
+          description: The full name of the primary assignee
+          example: 'Carl Sharonson'
+        assigneeEmail:
+          type: string
+          description: The email address of the primary assignee
+          example: 'carl@sharonson.com'
         losPrimaryKey:
           $ref: '#/components/schemas/LosPrimaryKey'
         solutionSubType:
@@ -8794,6 +8740,10 @@ components:
           example: 'PURCHASE'
         applicationSource:
           $ref: '#/components/schemas/ApplicationSourceSchema'
+        applicationLeadSource:
+          type: string
+          description: Specifies how an app was created. Options include LENDER, BORROWER, PUBLIC_API, INGEST (ingested loans come from a direct integration - e.g. a CRM)
+          example: 'BORROWER'
         applicationProgram:
           type: string
           description: The loan program of the application, possible values include - STATE_AGENCY, VA, FHA, CONVENTIONAL, LOCAL_AGENCY, USARURAL_DEVELOPMENT, PUBLIC_AND_INDIAN_HOUSING, OTHER
@@ -8812,7 +8762,7 @@ components:
           example: 'Getting Started_0'
         loanStatus:
           type: string
-          description: The current status of the loan application
+          description: The current status of the loan application - DENIED, IN_PROGRESS, or SUBMITTED. DENIED is related to AAN if the borrower's credit threshold is too low
           example: 'SUBMITTED'
         startToSubmitTime:
           type: number
@@ -8870,6 +8820,97 @@ components:
           type: boolean
           description: A flag that indicates that a successful match was found on the borrower using The Work Number
           example: true
+        hasRealtorFlag:
+          type: boolean
+          description: A flag that indicates the borrower selected they are working with a realtor on their application
+          example: true
+        asOfDate:
+          type: string
+          format: date-time
+          description: The date that the report was generated
+          example: '2019-10-29T04:25:30.000Z'
+    ReportingFollowupsSchema:
+      type: object
+      required:
+        - followUpId
+        - loanId
+        - followUpCreationTime
+        - asOfDate
+        - deployment
+      properties:
+        followUpId:
+          $ref: '#/components/schemas/FollowUpId'
+        loanId:
+          $ref: '#/components/schemas/ApplicationId'
+        requestType:
+          type: string
+          description: The type of request that created the followup. Can be AUTOMATED, MANUAL, or SUGGESTED
+          example: 'AUTOMATED'
+        followUpType:
+          type: string
+          description: The followup requested
+          example: 'Document Request'
+        followUpText:
+          type: string
+          description: Optional text containing additional details about the follow-up. Can be set by Blend, or custom text
+          example: 'Pre-Approval Notice (E-Sign)'
+        followUpCreationTime:
+          type: string
+          format: date-time
+          description: The timestamp when the followup was created in Blend
+          example: '2019-10-29T04:25:30.000Z'
+        currentStatus:
+          type: string
+          description: The current status of the followup. Can be Suggested, Declined, Requested, Pending Review, Completed, Completed Externally, Rejected, Cancelled
+          example: 'Requested'
+        requestedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the followup was requested
+          example: '2019-10-29T04:25:30.000Z'
+        requestedUserId:
+          type: string
+          description: The user_id that requested the followup. Can be 'system' or a Lender User ID
+          example: 'bf11aa77-eef0-422a-a3f0-884662c33254'
+        requestedUserName:
+          type: string
+          description: Full name of the Lender User that requested the followup
+          example: 'Mike Carlson'
+        requestedUserEmail:
+          type: string
+          description: Email address of the Lender User that requested the followup
+          example: 'mc@carlson.com'
+        completedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the followup was completed by the borrower
+          example: '2019-10-29T04:25:30.000Z'
+        completedUserId:
+          type: string
+          description: The User ID that completed the followup (generally associated with a Borrower)
+          example: 'bf11ks83-eef0-422a-a3f0-8846skeoic24'
+        reviewAction:
+          type: string
+          description: The action taken by the reviewing lender. Can be ACCEPT or REJECT.
+          example: 'ACCEPT'
+        reviewedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the follow-up was reviewed
+          example: '2019-10-29T04:25:30.000Z'
+        reviewedUserId:
+          type: string
+          description: The Lender User ID that reviewed the followup
+          example: 'bf11aa77-eef0-422a-a3f0-884662c33254'
+        cancelledAt:
+          type: string
+          format: date-time
+          description: The timestamp when the followup was cancelled
+          example: '2019-10-29T04:25:30.000Z'
+        cancelledUserId:
+          type: string
+          description: The lender User ID that cancelled the followup
+          example: '0005e3dc-ba27-4fe7-bfea-b809912d632c'
         asOfDate:
           type: string
           format: date-time
@@ -9680,7 +9721,7 @@ components:
               example: 'Custom title'
     PostDocumentSignatureFollowUpContext:
       type: object
-      description: Required context for creating follow-ups of type 'DOCUMENT_SIGNATURE'
+      description: Required context for creating follow-ups of type 'DOCUMENT_SIGNATURE.' `document.id` should not be re-used between follow-ups on the same application.
       required:
         - document
       properties:
@@ -10032,7 +10073,48 @@ components:
         * **ERROR** - There was an internal issue while trying to refresh Assets, resulting in no outcome
       enum: ['GAS_GENERATED', 'FINANCIAL_STATEMENT_PULLED', 'UPDATED_ASSETS_FOLLOW_UP_ISSUED', 'MANUAL_UPLOAD_FOLLOW_UP_ISSUED', 'ERROR']
       example: 'GAS_GENERATED'
-    DisclosuresPackagePostSchema:
+    TaxTranscriptsSchema:
+      type: object
+      description: Structured data for 4506T form
+      required:
+        - accounts
+      properties:
+        years:
+          type: array
+          description: List of years associated with 4506T form
+          items:
+            type: number
+          example: [2019, 2018]
+        filingStatus:
+          type: string
+          description: Filing status
+          enum: ['SINGLE', 'JOINT_CO_APPLICANT', 'JOINT_NON_APPLICANT']
+          example: 'SINGLE'
+        filingAddress:
+          description: Filing address
+          $ref: '#/components/schemas/AddressSchema'
+        filers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxTranscriptFilerSchema'
+    TaxTranscriptFilerSchema:
+      type: object
+      description: Tax transcript filer information
+      required:
+        - name
+      properties:
+        partyId:
+          description: Party id of filer (omitted for non-applicant filer)
+          $ref: '#/components/schemas/PartyId'
+        name:
+          description: Filer name
+          $ref: '#/components/schemas/NameSchema'
+    PackageType:
+      type: string
+      description: Package type
+      enum: ['INITIAL_LOAN_ESTIMATE', 'REVISED_LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'REVISED_CLOSING_DISCLOSURE', 'OTHER_DISCLOSURE', 'DOCUMENT_PACKAGE']
+      example: 'CLOSING_DISCLOSURE'
+    PackagePostSchema:
       type: object
       required:
         - applicationId
@@ -10044,22 +10126,23 @@ components:
           description: The Blend application UUID
           example: 'b2006a70-a19c-4b9f-973d-3a561e159061'
         type:
-          type: string
-          description: The package type
-          enum: ['INITIAL_LOAN_ESTIMATE', 'REVISED_LOAN_ESTIMATE', 'CLOSING_DISCLOSURES', 'REVISED_CLOSING_DISCLOSURES', 'OTHER']
-          example: 'CLOSING_DISCLOSURES'
+          $ref: '#/components/schemas/PackageType'
         foreignPackageId:
           type: string
           description: External package id provided by partner
           example: 'b2006f70-a19c-4b9f-973d-3a561e159061'
         name:
           type: string
-          description: An optional name for the disclosures package
+          description: An optional name for the package
           example: 'Closing Disclosure'
         description:
           type: string
-          description: An optional description of the disclosures package
+          description: An optional description of the package
           example: 'Closing Disclosure with exceptions'
+        dueDate:
+          type: string
+          description: The ISO timestamp of when the package is due
+          example: '2020-04-19T02:35:00.789Z'
         envelopes:
           type: array
           description: An envelope describes the signing stragegy and the recipient assignment within the package.
@@ -10111,15 +10194,15 @@ components:
         - type: object
       properties:
         metadata:
-          $ref: '#/components/schemas/DisclosuresEsignMetadataSchema'
+          $ref: '#/components/schemas/EsignMetadataSchema'
     WetsignEnvelopesRecipientPostSchema:
       allOf:
         - $ref: '#/components/schemas/EnvelopesRecipientPostSchema'
         - type: object
       properties:
         metadata:
-          $ref: '#/components/schemas/DisclosuresWetsignMetadataSchema'
-    DisclosuresEnvelopesRecipientResponseSchema:
+          $ref: '#/components/schemas/WetsignMetadataSchema'
+    EnvelopesRecipientResponseSchema:
       type: object
       required:
         - partyId
@@ -10141,11 +10224,11 @@ components:
           example: 'VIEWED'
         metadata:
           oneOf:
-            - $ref: '#/components/schemas/DisclosuresEsignMetadataSchema'
-            - $ref: '#/components/schemas/DisclosuresWetsignMetadataSchema'
+            - $ref: '#/components/schemas/EsignMetadataSchema'
+            - $ref: '#/components/schemas/WetsignMetadataSchema'
           example:
             doclink: https://esign-portal.com
-    DisclosuresWetsignMetadataSchema:
+    WetsignMetadataSchema:
       type: object
       required:
         - documentIds
@@ -10157,7 +10240,7 @@ components:
             type: string
             example: '9250f84b-c2a1-4cab-b265-bd720485c361'
           example: ['9250f84b-c2a1-4cab-b265-bd720485c361']
-    DisclosuresEsignMetadataSchema:
+    EsignMetadataSchema:
       type: object
       required:
         - documents
@@ -10174,6 +10257,11 @@ components:
                 type: string
                 description: The Blend UUID returned when uploading a document
                 example: 'b2996a70-a19b-4b7f-973d-3a561e159067'
+              signersRequired:
+                type: string
+                enum: ['ALL', 'ANY']
+                description: The signers required for this document
+                example: 'ALL'
               tabs:
                 type: array
                 items:
@@ -10188,6 +10276,17 @@ components:
                     - $ref: '#/components/schemas/EsignInitialHereSchema'
                     - $ref: '#/components/schemas/EsignDateSchema'
                     - $ref: '#/components/schemas/EsignNoteSchema'
+              tabExtractionMethod:
+                type: string
+                enum: ['EXPERE_ACROFORM']
+                description: If tabs must be extracted from embedded fields, specify the extraction method to use.
+                example: 'EXPERE_ACROFORM'
+              extractTabs:
+                type: array
+                items:
+                  type: object
+                  anyOf:
+                    - $ref: '#/components/schemas/EsignExtractTabExpereAcroformSchema'
     EsignBaseTabAttributesSchema:
       type: object
       required:
@@ -10433,7 +10532,20 @@ components:
             value:
               type: number
               example: 0
-    DisclosuresPackageResponseSchema:
+    EsignExtractTabExpereAcroformSchema:
+      type: object
+      required:
+        - fieldName
+      properties:
+        fieldName:
+          type: string
+          description: The name of the acroField from which to extract an Esign tab
+          example: 'SIG_Borrower_1_C1000788803_true_1'
+        required:
+          type: boolean
+          description: True if the tab is required to be completed by the recipient in Docusign, false if it is optional. Defaults to true.
+          example: true
+    PackageResponseSchema:
       type: object
       required:
         - id
@@ -10451,25 +10563,26 @@ components:
           description: The Blend application UUID
           example: 'b2006a70-a19c-4b9f-973d-3a561e159061'
         type:
-          type: string
-          description: The disclosure type.
-          enum: ['INITIAL_LOAN_ESTIMATE', 'REVISED_LOAN_ESTIMATE', 'CLOSING_DISCLOSURES', 'REVISED_CLOSING_DISCLOSURES', 'OTHER']
-          example: 'CLOSING_DISCLOSURES'
+          $ref: '#/components/schemas/PackageType'
         name:
           type: string
-          description: A name for the disclosure
+          description: A name for the package
           example: 'Closing Disclosure'
         description:
           type: string
-          description: An optional description of the disclosure
+          description: An optional description of the package
           example: 'Optional description'
         status:
           type: string
           enum: ['VIEWED', 'SIGNED', 'COMPLETED', 'DECLINED', 'HAS_NOT_VIEWED']
           example: 'VIEWED'
+        dueDate:
+          type: string
+          description: The ISO timestamp of when the lender has indicated a package is due
+          example: '2020-04-19T02:35:00.789Z'
         paperedAt:
           type: string
-          description: The ISO timestamp of when the lender decides to mail a disclosures package and not pursue electronic delivery
+          description: The ISO timestamp of when the lender decides to mail a package and not pursue electronic delivery
           example: '2020-04-19T02:35:00.789Z'
         foreignPackageId:
           type: string
@@ -10479,8 +10592,8 @@ components:
           type: array
           description: An envelope describes the signing stragegy and the recipient assignment within the package
           items:
-            $ref: '#/components/schemas/DisclosuresEnvelopeResponseSchema'
-    DisclosuresEnvelopeResponseSchema:
+            $ref: '#/components/schemas/EnvelopeResponseSchema'
+    EnvelopeResponseSchema:
       type: object
       required:
         - id
@@ -10517,7 +10630,7 @@ components:
         recipients:
           type: array
           items:
-            $ref: '#/components/schemas/DisclosuresEnvelopesRecipientResponseSchema'
+            $ref: '#/components/schemas/EnvelopesRecipientResponseSchema'
     AssetsRefreshRequestSchema:
       type: object
       description: Parameters for an Assets Refresh request
@@ -10541,6 +10654,7 @@ components:
           required:
             - applicationId
             - closingType
+            - closingParties
             - documentReferences
             - closingStatus
           properties:
@@ -10548,8 +10662,11 @@ components:
               $ref: '#/components/schemas/ApplicationId'
             closingType:
               $ref: '#/components/schemas/ClosingType'
-            titleAgent:
-              $ref: '#/components/schemas/ClosingTitleAgent'
+            closingParties:
+              type: array
+              description: List of closing parties associated with the closing.
+              items:
+                $ref: '#/components/schemas/ClosingParty'
             closingStart:
               type: string
               format: date-time
@@ -10570,6 +10687,11 @@ components:
               description: The closing status
               enum: ['DRAFT', 'SENT', 'COMPLETED']
               example: 'COMPLETED'
+            lastSentAt:
+              type: string
+              format: date-time
+              description: Timestamp reflecting when the closing was last sent
+              example: '2019-10-29T04:25:30.000Z'
     ClosingBaseRecord:
       type: object
       description: Base Closing Record
@@ -10591,47 +10713,68 @@ components:
       description: The type of closing
       enum: ['RON', 'HYBRID', 'TRADITIONAL', 'UNDETERMINED']
       example: 'RON'
-    ClosingTitleAgent:
-      description: Information about the title agent assigned to a closing.
-      allOf:
-        - $ref: '#/components/schemas/ClosingBaseRecord'
-        - type: object
-          required:
-            - email
-          properties:
-            email:
-              type: string
-              example: 'johnhernandez@mail.com'
-            firstName:
-              type: string
-              example: John
-            lastName:
-              type: string
-              example: Hernandez
-            titleAgency:
-              $ref: '#/components/schemas/ClosingTitleAgency'
-    ClosingTitleAgentPatchRequest:
-      description: Information about the title agent assigned to a closing.
+    ClosingPartyPatchRequest:
+      description: Information about a closing party.
       type: object
       required:
         - email
       properties:
         email:
           type: string
-          description: Email address of the closing agent
+          description: Email address of the closing party
           example: 'johnhernandez@mail.com'
+        partyType:
+          $ref: '#/components/schemas/ClosingPartyType'
         firstName:
           type: string
-          description: First name of the closing agent
+          description: First name of the closing party
           example: John
         lastName:
           type: string
-          description: Last name of the closing agent
+          description: Last name of the closing party
           example: Hernandez
-        titleAgency:
-          $ref: '#/components/schemas/ClosingTitleAgencyPatchRequest'
-    ClosingTitleAgency:
-      description: Name of the title agency assigned to a closing.
+        agencyName:
+          type: string
+          description: Name of the closing party's agency
+          example: Title Co.
+    ClosingPartyType:
+      type: string
+      description: The closing party type
+      enum: ['SETTLEMENT', 'TITLE', 'ATTORNEY']
+      example: 'TITLE'
+    ClosingParty:
+      description: Information about a closing party.
+      allOf:
+        - $ref: '#/components/schemas/ClosingBaseRecord'
+        - type: object
+          required:
+            - email
+            - partyType
+            - firstName
+            - lastName
+          properties:
+            email:
+              type: string
+              description: Email address of the closing party
+              example: 'johnhernandez@mail.com'
+            partyType:
+              $ref: '#/components/schemas/ClosingPartyType'
+            firstName:
+              type: string
+              description: First name of the closing party
+              example: John
+            lastName:
+              type: string
+              description: Last name of the closing party
+              example: Hernandez
+            principalId:
+              type: string
+              description: The ID of the record in Blend’s identity service that corresponds to this party
+              example: d74468a2-ca1a-415c-b985-ed6012bd4d0d
+            agency:
+              $ref: '#/components/schemas/ClosingAgency'
+    ClosingAgency:
+      description: Name of the agency associated with a closing party.
       allOf:
         - $ref: '#/components/schemas/ClosingBaseRecord'
         - type: object
@@ -10640,18 +10783,8 @@ components:
           properties:
             name:
               type: string
-              description: Title agency name
+              description: Agency name
               example: 'Title Co.'
-    ClosingTitleAgencyPatchRequest:
-      description: Name of the title agency assigned to a closing.
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-          description: Title agency name
-          example: 'Title Co.'
     ClosingDocumentReference:
       allOf:
         - $ref: '#/components/schemas/ClosingBaseRecord'
@@ -10666,12 +10799,12 @@ components:
               description: Document ID
               example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
             sourceType:
-              $ref: '#/components/schemas/ClosingDocumentSourceType'
+              $ref: '#/components/schemas/ClosingSourceType'
             closingDesignation:
               $ref: '#/components/schemas/ClosingDesignation'
-    ClosingDocumentSourceType:
+    ClosingSourceType:
       type: string
-      description: The document source type
+      description: The source type
       enum: ['LENDER', 'TITLE']
       example: 'LENDER'
     ClosingDesignation:
@@ -10713,70 +10846,12 @@ components:
           format: date-time
           description: Closing end timestamp
           example: '2019-10-30T04:25:30.000Z'
-        titleAgent:
-          $ref: '#/components/schemas/ClosingTitleAgentPatchRequest'
-        documents:
+        closingParties:
           type: array
+          description: List of closing parties
           items:
-            $ref: '#/components/schemas/ClosingDocumentReferenceRequest'
-    ClosingTitlePostRequest:
-      type: object
-      required:
-        - email
-      properties:
-        email:
-          type: string
-          description: Email address of the closing agent
-          example: 'johnhernandez@mail.com'
-        firstName:
-          type: string
-          description: First name of the closing agent
-          example: John
-        lastName:
-          type: string
-          description: Last name of the closing agent
-          example: Hernandez
-        agencyName:
-          type: string
-          description: Name of the title agency
-          example: 'Title Co.'
-    ClosingTypePostRequest:
-      type: object
-      required:
-        - closingType
-      properties:
-        closingType:
-          $ref: '#/components/schemas/ClosingType'
-    ClosingDatePostRequest:
-      oneOf:
-        - type: object
-          required:
-            - closingDate
-          properties:
-            closingDate:
-              type: string
-              format: date-time
-              description: Closing date. Setting this is equivalent to setting closingStart and closingEnd to the beginning and end of the specified day respectively.
-              example: '2019-10-29T04:25:30.000Z'
-        - type: object
-          required:
-            - closingStart
-            - closingEnd
-          properties:
-            closingStart:
-              type: string
-              format: date-time
-              description: Closing start timestamp
-              example: '2019-10-29T04:25:30.000Z'
-            closingEnd:
-              type: string
-              format: date-time
-              description: Closing end timestamp
-              example: '2019-10-30T04:25:30.000Z'
-      example:
-        closingStart: '2019-10-29T04:25:30.000Z'
-        closingEnd: '2019-10-30T04:25:30.000Z'
-    ClosingDocumentsPostRequest:
+            $ref: '#/components/schemas/ClosingPartyPatchRequest'
+    ClosingDocumentsPutRequest:
       type: object
       required:
         - documents
@@ -10787,17 +10862,17 @@ components:
             $ref: '#/components/schemas/ClosingDocumentReferenceRequest'
     ClosingDocumentReferenceRequest:
       type: object
-      description: Same as ClosingDocumentReference except closingDesignation is optional.
+      description: Reference to a closing document in a closing document request.
       required:
         - documentID
         - sourceType
       properties:
         documentID:
           type: string
-          description: Document ID
+          description: Blend Document ID
           example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
         sourceType:
-          $ref: '#/components/schemas/ClosingDocumentSourceType'
+          $ref: '#/components/schemas/ClosingSourceType'
         closingDesignation:
           $ref: '#/components/schemas/ClosingDesignation'
     ClosingCreatedResponse:
@@ -10825,6 +10900,667 @@ components:
         trackingId:
           type: string
           example: '2559635c-6a0b-406a-85b2-e0e8e23c35ab'
+    ClosingSendPostRequest:
+      type: object
+      required:
+        - sourceType
+      properties:
+        sourceType:
+          $ref: '#/components/schemas/ClosingSourceType'
+    ClosingENotePostRequest:
+      type: object
+      required:
+        - smartDocTemplateData
+      properties:
+        smartDocTemplateData:
+          $ref: '#/components/schemas/SmartDocTemplateData'
+      example:
+        smartDocTemplateData:
+          fixedLoan:
+            formId: '3200e'
+            scheduledFirstPaymentDate: '2018-03-14'
+            paymentRemittanceDay: 3
+            lenderLoanId: '777777777'
+            lienPriorityType: 'FirstLien'
+            noteRatePercent: 13.85
+            originalLoanAmount: 30000000
+            loanMaturityDate: '2048-12-13'
+            originalPrincipalAndInterestPaymentAmount: 14460.45
+            lateChargeGracePeriod: 8
+            lateChargeRate: 13.45
+            lateChargeMaximumAmount: 20.15
+            conformingYearType: 'Pre2010'
+            propertyAddress:
+              city: 'New York'
+              state: 'NY'
+              postalCode: '10010'
+              county: 'New York'
+              parsedStreetAddress:
+                streetPrimaryNumberText: '123'
+                streetPreDirectionalText: 'W'
+                streetName: 'Hook'
+                streetSuffixText: 'Road'
+                addressUnitDesignatorType: 'Unit'
+                addressUnitIdentifier: '3C'
+            notePayToAddress:
+              streetAddress: '1180 6th Avenue'
+              city: 'New York'
+              state: 'NY'
+              postalCode: '10036'
+            closingDocumentInfo:
+              executionDate: '2018-03-14'
+              executionCity: 'New York'
+              executionState: 'NY'
+              agent:
+                unparsedName: 'Nelson and Nelson'
+                type: 'Attorney'
+                contactName: 'Matthew Nelson'
+                postalAddress:
+                  streetAddress: '403 W 49th Street'
+                  city: 'New York'
+                  state: 'NY'
+                  postalCode: '10019'
+              lender:
+                unparsedName: 'Northstar Lending'
+                contactName: 'Harold Osborn'
+                nmlsId: 665444
+              loanOriginator:
+                unparsedName: 'Northstar Lending'
+                nmlsId: 353553
+          signer:
+            - borrowerId: 'Brwr1'
+              firstName: 'John'
+              middleName: 'Michael'
+              lastName: 'Jameson'
+              suffix: 'Jr'
+              homeTelephoneNumber: '4105551040'
+            - firstName: 'John'
+              lastName: 'Anderson'
+    SmartDocLoanTypeFormId:
+      type: string
+      enum:
+        - 3200e
+        - 3200e-usda
+        - 3200e-fha
+        - 3200e-va
+        - 3200e-in
+        - 3200e-md
+        - 3200e-tx
+        - 3200e-al
+        - 3200e-al2
+        - 3202e
+        - 3210e
+        - 3220e
+        - 3230e
+        - 3233e
+        - 3239e
+        - 3244.1e
+        - 3246e
+        - 3247e
+        - 3249e
+        - 3250e
+      example: 3200e
+    SmartDocARMLoanTypeFormId:
+      type: string
+      enum:
+        - 3501e
+        - 3501.02e
+        - 3501.10e
+        - 3501.30e
+        - 3501.39e
+        - 3501.46e
+        - 3501.47e
+        - 3501.49e
+        - 3501.50e
+        - 3502e
+        - 3502.02e
+        - 3502.10e
+        - 3502.30e
+        - 3502.39e
+        - 3502.46e
+        - 3502.47e
+        - 3502.49e
+        - 3502.50e
+        - 3504e
+        - 3522e
+        - 3528e
+        - 3528e-ak
+        - 3528e-fl
+        - 3528e-nh
+        - 3528e-pa
+        - 3528e-tx
+        - 3528e-va
+        - 3528e-vt
+        - 3528e-wi
+        - 3528e-wv
+      example: 3501e
+    SmartDocARM3510LoanTypeFormId:
+      type: string
+      enum:
+        - 3510e
+      example: 3510e
+    SmartDocSignerNameType:
+      type: string
+      minLength: 1
+      maxLength: 40
+      example: 'John'
+    SmartDocUnparsedNameType:
+      type: string
+      minLength: 1
+      maxLength: 100
+      example: 'John M. Jameson Sr'
+    SmartDocSigner:
+      type: object
+      required:
+        - firstName
+        - lastName
+      properties:
+        borrowerId:
+          type: string
+          enum:
+            - Brwr1
+            - Brwr2
+            - Brwr3
+            - Brwr4
+            - Brwr5
+            - Brwr6
+            - Brwr7
+            - Brwr8
+          example: 'Brwr1'
+        firstName:
+          $ref: '#/components/schemas/SmartDocSignerNameType'
+        middleName:
+          $ref: '#/components/schemas/SmartDocSignerNameType'
+        lastName:
+          $ref: '#/components/schemas/SmartDocSignerNameType'
+        suffix:
+          type: string
+          minLength: 1
+          maxLength: 5
+          example: 'Sr'
+        homeTelephoneNumber:
+          type: string
+          pattern: '^\d+$'
+          example: '4105551040'
+        powerOfAttorney:
+          type: object
+          required:
+            - unparsedName
+            - signingCapacityTextDescription
+          properties:
+            unparsedName:
+              $ref: '#/components/schemas/SmartDocUnparsedNameType'
+            signingCapacityTextDescription:
+              $ref: '#/components/schemas/SmartDocUnparsedNameType'
+    SmartDocCityType:
+      type: string
+      minLength: 1
+      maxLength: 26
+      example: 'New York'
+    SmartDocStateType:
+      type: string
+      enum:
+        - AL
+        - AK
+        - AZ
+        - AR
+        - CA
+        - CO
+        - CT
+        - DE
+        - DC
+        - FL
+        - GA
+        - HI
+        - ID
+        - IL
+        - IN
+        - IA
+        - KS
+        - KY
+        - LA
+        - ME
+        - MD
+        - MA
+        - MI
+        - MN
+        - MS
+        - MO
+        - MT
+        - NE
+        - NV
+        - NH
+        - NJ
+        - NM
+        - NY
+        - NC
+        - ND
+        - OH
+        - OK
+        - OR
+        - PA
+        - RI
+        - SC
+        - SD
+        - TN
+        - TX
+        - UT
+        - VT
+        - VA
+        - WA
+        - WV
+        - WI
+        - WY
+      example: 'NY'
+    SmartDocCityStateZip:
+      type: object
+      required:
+        - city
+        - state
+        - postalCode
+      properties:
+        city:
+          $ref: '#/components/schemas/SmartDocCityType'
+        state:
+          $ref: '#/components/schemas/SmartDocStateType'
+        postalCode:
+          type: string
+          pattern: '^\d{5}(\d{4})?$'
+          example: 10036
+    SmartDocAddressComponentType:
+      type: string
+      minLength: 1
+      maxLength: 240
+    SmartDocPostalAddress:
+      type: object
+      required:
+        - streetAddress
+      properties:
+        streetAddress:
+          $ref: '#/components/schemas/SmartDocAddressComponentType'
+    SmartDocAgentType:
+      type: string
+      enum:
+        - Attorney
+        - ClosingAgent
+        - EscrowCompany
+        - SettlementAgent
+        - TitleCompany
+        - Other
+      example: 'Attorney'
+    SmartDocContactNameType:
+      type: string
+      minLength: 1
+      maxLength: 60
+      example: 'Matthew Nelson'
+    SmartDocAgent:
+      type: object
+      required:
+        - unparsedName
+      properties:
+        postalAddress:
+          $ref: '#/components/schemas/SmartDocPostalAddress'
+        unparsedName:
+          $ref: '#/components/schemas/SmartDocUnparsedNameType'
+        type:
+          $ref: '#/components/schemas/SmartDocAgentType'
+        contactName:
+          $ref: '#/components/schemas/SmartDocContactNameType'
+    SmartDocNMLSRID:
+      type: integer
+      minimum: 1
+      maximum: 999999
+      example: 665444
+    SmartDocLender:
+      type: object
+      required:
+        - unparsedName
+        - contactName
+        - nmlsId
+      properties:
+        unparsedName:
+          $ref: '#/components/schemas/SmartDocUnparsedNameType'
+        contactName:
+          $ref: '#/components/schemas/SmartDocContactNameType'
+        nmlsId:
+          $ref: '#/components/schemas/SmartDocNMLSRID'
+    SmartDocLoanParty:
+      type: object
+      required:
+        - unparsedName
+        - nmlsId
+      properties:
+        unparsedName:
+          $ref: '#/components/schemas/SmartDocUnparsedNameType'
+        nmlsId:
+          $ref: '#/components/schemas/SmartDocNMLSRID'
+    SmartDocCountyType:
+      type: string
+      minLength: 1
+      maxLength: 35
+      example: 'New York'
+    SmartDocUnparsedStreetAddress:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocCityStateZip'
+        - type: object
+          required:
+            - unparsedStreetAddress
+            - county
+          properties:
+            unparsedStreetAddress:
+              type: object
+              required:
+                - addressLineText
+              properties:
+                addressLineText:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+                addressAdditionalLineText:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+            county:
+              $ref: '#/components/schemas/SmartDocCountyType'
+    SmartDocAddressUnitDesignatorType:
+      type: string
+      enum:
+        - Apartment
+        - Basement
+        - Building
+        - Condo
+        - Department
+        - Floor
+        - Front
+        - Hanger
+        - Key
+        - Lobby
+        - Lot
+        - Lower
+        - Office
+        - Other
+        - Penthouse
+        - Pier
+        - Rear
+        - Room
+        - Side
+        - Space
+        - Stop
+        - Suite
+        - Trailer
+        - Unit
+        - Upper
+      example: 'Apartment'
+    SmartDocParsedStreetAddress:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocCityStateZip'
+        - type: object
+          required:
+            - parsedStreetAddress
+            - county
+          properties:
+            parsedStreetAddress:
+              type: object
+              required:
+                - streetName
+              properties:
+                streetPrimaryNumberText:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+                streetPreDirectionalText:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+                streetName:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+                streetSuffixText:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+                streetPostDirectionalText:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+                addressUnitDesignatorType:
+                  $ref: '#/components/schemas/SmartDocAddressUnitDesignatorType'
+                addressUnitIdentifier:
+                  $ref: '#/components/schemas/SmartDocAddressComponentType'
+            county:
+              $ref: '#/components/schemas/SmartDocCountyType'
+    SmartDocClosingDocumentInfo:
+      type: object
+      required:
+        - lender
+        - loanOriginator
+        - executionDate
+        - executionCity
+        - executionState
+      properties:
+        agent:
+          $ref: '#/components/schemas/SmartDocAgent'
+        lender:
+          $ref: '#/components/schemas/SmartDocLender'
+        loanOriginator:
+          $ref: '#/components/schemas/SmartDocLoanParty'
+        companyMortgageBroker:
+          $ref: '#/components/schemas/SmartDocLoanParty'
+        individualMortgageBroker:
+          $ref: '#/components/schemas/SmartDocLoanParty'
+        executionDate:
+          type: string
+          format: date-time
+          example: '2018-03-14'
+        executionCity:
+          $ref: '#/components/schemas/SmartDocCityType'
+        executionState:
+          $ref: '#/components/schemas/SmartDocStateType'
+    SmartDocPercentage:
+      type: number
+      minimum: 0
+      maximum: 99.9999
+      example: 13.85
+    SmartDocAbstractLoanType:
+      type: object
+      required:
+        - notePayToAddress
+        - closingDocumentInfo
+        - noteRatePercent
+        - loanMaturityDate
+        - originalPrincipalAndInterestPaymentAmount
+        - lateChargeGracePeriod
+        - lateChargeRate
+      properties:
+        propertyAddress:
+          description: The property address will be pulled from Blend if not specified.
+          anyOf:
+            - $ref: '#/components/schemas/SmartDocUnparsedStreetAddress'
+            - $ref: '#/components/schemas/SmartDocParsedStreetAddress'
+        notePayToAddress:
+          $ref: '#/components/schemas/SmartDocPostalAddress'
+        closingDocumentInfo:
+          $ref: '#/components/schemas/SmartDocClosingDocumentInfo'
+        lenderLoanId:
+          type: string
+          minLength: 1
+          maxLength: 60
+          example: '777777777'
+        lienPriorityType:
+          type: string
+          enum:
+            - FirstLien
+            - SecondLien
+            - Other
+          default: FirstLien
+          example: FirstLien
+        noteRatePercent:
+          $ref: '#/components/schemas/SmartDocPercentage'
+        originalLoanAmount:
+          description: The original loan amount will be pulled from Blend if not specified.
+          type: number
+          minimum: 1
+          maximum: 999999999.99
+          example: 30000000
+        loanMaturityDate:
+          type: string
+          format: date-time
+          example: '2048-12-13'
+        originalPrincipalAndInterestPaymentAmount:
+          type: number
+          minimum: 1
+          maximum: 999999999.99
+          example: 14460.45
+        lateChargeGracePeriod:
+          type: integer
+          minimum: 1
+          maximum: 365
+          example: 8
+        lateChargeRate:
+          $ref: '#/components/schemas/SmartDocPercentage'
+        lateChargeMaximumAmount:
+          type: number
+          minimum: 1
+          maximum: 9999999.99
+          example: 20.15
+        conformingYearType:
+          type: string
+          enum:
+            - Pre2010
+            - January2010
+            - Other
+          example: 'Pre2010'
+        registryOperator:
+          $ref: '#/components/schemas/SmartDocUnparsedNameType'
+    SmartDocAgencyCaseIdentifierType:
+      type: string
+      minLength: 1
+      maxLength: 20
+      pattern: '^[0-9a-zA-z\\-]+$'
+    SmartDocFixedLoanType:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocAbstractLoanType'
+        - type: object
+          required:
+            - formId
+            - scheduledFirstPaymentDate
+            - paymentRemittanceDay
+          properties:
+            formId:
+              $ref: '#/components/schemas/SmartDocLoanTypeFormId'
+            scheduledFirstPaymentDate:
+              type: string
+              format: date-time
+              example: '2018-03-14'
+            paymentRemittanceDay:
+              type: integer
+              minimum: 1
+              maximum: 31
+              example: 3
+            agencyCaseIdentifier:
+              $ref: '#/components/schemas/SmartDocAgencyCaseIdentifierType'
+    SmartDocPointWordsType:
+      type: string
+      minLength: 1
+      maxLength: 60
+    SmartDocAbstractARMLoanType:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocAbstractLoanType'
+        - type: object
+          required:
+            - scheduledFirstPaymentDate
+            - dateOfFirstChange
+            - changePercentagePoints
+            - changePercentagePointsWords
+            - greaterLimitPoints
+            - lowerLimitPoints
+            - maxLimitPoints
+            - lifetimeFloorPercent
+          properties:
+            scheduledFirstPaymentDate:
+              type: string
+              format: date-time
+              example: '2018-03-14'
+            dateOfFirstChange:
+              type: string
+              format: date-time
+            changePercentagePoints:
+              type: number
+            changePercentagePointsWords:
+              $ref: '#/components/schemas/SmartDocPointWordsType'
+            greaterLimitPoints:
+              type: number
+            lowerLimitPoints:
+              type: number
+            maxLimitPoints:
+              type: number
+            lifetimeCapRate:
+              $ref: '#/components/schemas/SmartDocPercentage'
+            lifetimeFloorPercent:
+              $ref: '#/components/schemas/SmartDocPercentage'
+    SmartDocARMLoanType:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocAbstractARMLoanType'
+        - type: object
+          required:
+            - formId
+          properties:
+            formId:
+              $ref: '#/components/schemas/SmartDocARMLoanTypeFormId'
+    SmartDocARM3510LoanType:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocAbstractARMLoanType'
+        - type: object
+          required:
+            - formId
+            - pointChange
+            - pointChangeWords
+            - precedingMonths
+          properties:
+            formId:
+              $ref: '#/components/schemas/SmartDocARM3510LoanTypeFormId'
+            pointChange:
+              type: number
+            pointChangeWords:
+              $ref: '#/components/schemas/SmartDocPointWordsType'
+            precedingMonths:
+              type: integer
+              minimum: 1
+    SmartDocBaseDoc:
+      type: object
+      properties:
+        signer:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/SmartDocSigner'
+        MIN:
+          description: Required in production environment.
+          type: integer
+          minimum: 100000000000000000
+          maximum: 999999999999999999
+          example: 999916100056729656
+    SmartDocFixedLoan:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocBaseDoc'
+        - type: object
+          required:
+            - fixedLoan
+          properties:
+            fixedLoan:
+              $ref: '#/components/schemas/SmartDocFixedLoanType'
+    SmartDocArmLoan:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocBaseDoc'
+        - type: object
+          required:
+            - armLoan
+          properties:
+            armLoan:
+              $ref: '#/components/schemas/SmartDocARMLoanType'
+    SmartDocARM3510Loan:
+      allOf:
+        - $ref: '#/components/schemas/SmartDocBaseDoc'
+        - type: object
+          required:
+            - arm3510Loan
+          properties:
+            arm3510Loan:
+              $ref: '#/components/schemas/SmartDocARM3510LoanType'
+    SmartDocTemplateData:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/SmartDocFixedLoan'
+        - $ref: '#/components/schemas/SmartDocArmLoan'
+        - $ref: '#/components/schemas/SmartDocARM3510Loan'
     GetITPResponse:
       type: object
       required:
