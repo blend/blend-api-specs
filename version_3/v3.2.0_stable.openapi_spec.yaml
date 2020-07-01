@@ -63,6 +63,7 @@ paths:
             $ref: '#/components/schemas/ApplicationId'
         - in: query
           name: format
+          required: true
           description: The requested data format for the response
           example: 'fannie'
           schema:
@@ -2802,202 +2803,6 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
-  /borrowers:
-    post:
-      operationId: Post Borrower
-      summary: Add a Borrower to an Application
-      description: Add a borrower to a specific loan. You can only add non-primary borrowers through this endpoint.
-      tags:
-        - Borrowers
-      requestBody:
-        description: Borrower parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-                - email
-              properties:
-                name:
-                  $ref: '#/components/schemas/NameSchema'
-                email:
-                  type: string
-                  example: 'johnhernandez@mail.com'
-                taxpayerIdentifier:
-                  $ref: '#/components/schemas/TaxpayerIdentifierSchema'
-                dateOfBirth:
-                  type: string
-                  format: date-time
-                  description: UTC Timestamp of Date of Birth
-                  example: '2018-10-03T20:07:27+00:00'
-                homePhone:
-                  type: integer
-                  description: Nine-digit home phone number
-                  example: '1112223333'
-                currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
-                loanId:
-                  $ref: '#/components/schemas/ApplicationId'
-                fileNumber:
-                  type: integer
-                  example: 1
-                filePosition:
-                  type: number
-                  example: 1
-                  enum: [1, 2]
-                econsent:
-                  $ref: '#/components/schemas/PostEconsentSchema'
-            example:
-              name:
-                firstName: 'John'
-                lastName: 'Hernandez'
-              email: 'john@email.com'
-              loanId: 'aa9fdaa2-7bf3-4411-a836-c2a46117f5c3'
-      responses:
-        200:
-          description: Created Borrower
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/PartyResponseSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-  /borrowers/{id}:
-    patch:
-      operationId: Patch Borrower
-      summary: Update a Borrower on an Application
-      description: Update a borrower's details.
-      tags:
-        - Borrowers
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Borrower Id
-          example: '9250f84b-c2a1-4cab-b265-bd720685c361'
-      requestBody:
-        description: Borrower update parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  $ref: '#/components/schemas/NameSchema'
-                email:
-                  type: string
-                  example: 'johnhernandez@mail.com'
-                taxpayerIdentifier:
-                  $ref: '#/components/schemas/TaxpayerIdentifierSchema'
-                dateOfBirth:
-                  type: string
-                  format: date-time
-                  description: UTC Timestamp of Date of Birth
-                  example: '2018-10-03T20:07:27+00:00'
-                homePhone:
-                  type: integer
-                  description: Nine-digit home phone number
-                  example: '1112223333'
-                currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
-                econsent:
-                  $ref: '#/components/schemas/PostEconsentSchema'
-            example:
-              name:
-                firstName: 'John'
-                lastName: 'Hernandez'
-              email: 'john@email.com'
-              taxpayerIdentifier:
-                value: '000113933'
-                type: 'SOCIAL_SECURITY_NUMBER'
-              dateOfBirth: '2018-10-03T20:07:27+00:00'
-              homePhone: '1112223333'
-              propertyAddress:
-                streetAddressLine1: '415 Kearny St'
-                city: 'San Francisco'
-                state: 'CA'
-                zipCode: '94108'
-      responses:
-        200:
-          description: Updated Borrower
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/PartyResponseSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-    delete:
-      operationId: Delete Borrower
-      summary: Remove a Borrower from an Application
-      description: Delete borrower from a specific loan.
-      tags:
-        - Borrowers
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Borrower Id
-          example: '9250f84b-c2a1-4cab-b265-bd720685c361'
-      responses:
-        200:
-          description: Successful Deletion
-        401:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
   /parties/{id}/employers:
     get:
       operationId: Get Party Employers
@@ -3768,7 +3573,6 @@ MAolJUVPRgo='
                 - name
                 - email
                 - type
-                - verificationData
               properties:
                 applicationId:
                   $ref: '#/components/schemas/ApplicationId'
@@ -5139,6 +4943,13 @@ MAolJUVPRgo='
           schema:
             type: string
           example: default
+        - name: limit
+          in: query
+          required: false
+          description: The page size to return. Default and maximum are 250.
+          schema:
+            type: integer
+            example: 25
         - name: status
           in: query
           required: false
@@ -5498,7 +5309,7 @@ components:
     DocumentType:
       type: string
       description: Blend document type
-      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER', 'CLOSING_PACKAGE', 'PROMISSORY_NOTE', 'DEED_OF_TRUST', 'TITLE_DOCUMENT']
+      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER', 'CLOSING_PACKAGE', 'PROMISSORY_NOTE', 'DEED_OF_TRUST', 'TITLE_DOCUMENT', 'CLOSING_SETTLEMENT_ONLY']
     ApplicationExperienceType:
       type: string
       description: ENUM describing the type of borrower experience for this application

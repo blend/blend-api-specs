@@ -63,6 +63,7 @@ paths:
             $ref: '#/components/schemas/ApplicationId'
         - in: query
           name: format
+          required: true
           description: The requested data format for the response
           example: 'fannie'
           schema:
