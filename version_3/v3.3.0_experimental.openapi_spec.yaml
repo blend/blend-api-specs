@@ -177,6 +177,12 @@ paths:
               type: string
               example: '9250f84b-c2a1-4cab-b265-bd720685c361'
           example: ['9250f84b-c2a1-4cab-b265-bd720685c361']
+        - name: solution-sub-type
+          in: query
+          required: false
+          description: Filters the list of loans to loans with a matching solution subtype.
+          schema:
+            $ref: '#/components/schemas/HomeLendingSolutionSubType'
       responses:
         200:
           description: List of paginated applications, with cursors to go the next or previous pages.
@@ -4222,79 +4228,6 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
-  /account-applications:
-    get:
-      operationId: Get Account Applications
-      summary: List Account Applications
-      description: Get a paginated list of account applications sorted by creation date descending.
-      tags:
-        - Account Opening
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          description: The number of account applications to be returned for this call. Minimum is 1, maximum is 100, default is 50.
-          schema:
-            type: integer
-          example: 50
-        - name: cursor
-          in: query
-          required: false
-          description: An opaque string used for pagination, pass the cursor back to start at this position
-          schema:
-            type: string
-          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
-      responses:
-        200:
-          description: List of paginated account applications, with cursors to go the next or previous pages.
-          content:
-            application/json; charset=utf-8:
-              schema:
-                type: object
-                properties:
-                  data:
-                    description: An array of account applications
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AccountApplicationSchema'
-                  nextCursor:
-                    description: Cursor to use to get to the next set of account applications
-                    type: string
-                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
-                  prevCursor:
-                    description: Cursor to use to get to the previous set of account applications
-                    type: string
-                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        422:
-          description: Invalid Update
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidUpdateErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
   /account-applications/{id}:
     get:
       operationId: Get Account Opening Application Data
@@ -4362,25 +4295,7 @@ MAolJUVPRgo='
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                referenceId:
-                  type: string
-                  description: Optional reference ID for matching records with Blend's application object
-                  example: '200ABC123'
-                approvalStatus:
-                  type: string
-                  description: Decision regarding opening the account
-                  enum: ['APPROVED', 'REFER']
-                  example: 'APPROVED'
-                accounts:
-                  type: array
-                  description: List of accounts with their accountNumbers
-                  items:
-                    $ref: '#/components/schemas/AccountSchema'
-            example:
-              referenceId: 'accountRefId'
-              approvalStatus: 'APPROVED'
+              $ref: '#/components/schemas/PatchApplicationSchema'
       responses:
         200:
           description: Updated Application
@@ -6126,7 +6041,7 @@ MAolJUVPRgo='
     post:
       operationId: Post Closing Send
       summary: Submit Closing
-      description: Submits a closing.
+      description: Submits or Resubmits a closing.
       tags:
         - Close
       parameters:
@@ -6146,6 +6061,54 @@ MAolJUVPRgo='
       responses:
         200:
           description: The closing has been submitted.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Closing Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ClosingNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /close/closings/{id}/redraw:
+    post:
+      operationId: Post Closing Redraw
+      summary: Initiate Closing Redraw
+      description: Places submitted closing back into a draft state so that changes can be made.
+      tags:
+        - Close
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Closing ID
+          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+      responses:
+        200:
+          description: The closing has been successfully cancelled and reverted to a draft state.
         400:
           description: Invalid Request
           content:
@@ -6208,7 +6171,7 @@ components:
     FollowUpId:
       type: string
       description: The UUID of the followup in Blend's system. The static identifier that should be used to access followups across Blend and external integrations.
-      example: '0057e00b-15fd-4d3a-8389-18a3ca937bee'   
+      example: '0057e00b-15fd-4d3a-8389-18a3ca937bee'
     PartyId:
       type: string
       description: The UUID of the party in Blend's system. Equivalent to borrowerId
@@ -6238,6 +6201,11 @@ components:
       description: ENUM describing the type of borrower experience for this application
       enum: ['FULL_APPLICATION', 'LENDER_ENTERED', 'POST_SUBMISSION']
       example: 'POST_SUBMISSION'
+    HomeLendingSolutionSubType:
+      type: string
+      description: ENUM describing the solution sub type of home lending applications
+      enum: ['CANADA_MORTGAGE', 'HELOAN', 'HELOC', 'MORTGAGE', 'MORTGAGE_MODIFICATION', 'OTHER']
+      example: 'MORTGAGE'
     ArchivedStatusSchema:
       type: boolean
       description: True if the application has been archived
@@ -7634,12 +7602,16 @@ components:
       properties:
         _id:
           type: string
-          description: Application ID
+          description: Internal application ID
           example: '3f345acb-6ac4-4bd0-b04a-dc0b9ad76e70'
         referenceId:
           type: string
-          description: Customer reference ID for application
+          description: Customer reference ID for application.
           example: '124123'
+        productReferenceId:
+          type: string
+          description: Customer reference ID for product bundle.
+          example: '324323'
         applicants:
           type: array
           description: List of applicants applying to open an account. Maximum of two.
@@ -7685,18 +7657,30 @@ components:
                   type: string
                   description: Family or household member's last name.
                   example: Smith
+            answers:
+              $ref: '#/components/schemas/AnswerSchema'
+        dynamicAccountOptions:
+          $ref: '#/components/schemas/AnswerSchema'
         debitCardIndicator:
           type: boolean
-          description: Indicates whether applicant is requesting a debit card
+          description: Indicates whether applicant is requesting a debit card.
           example: true
+        debitCardDesign:
+          type: string
+          description: Selected debit card design. Values configured per customer.
+          example: 'BLUE'
+        promoCode:
+          type: string
+          description: Promo code for the application.
+          example: '1110319'
         overdraftPrivilegeIndicator:
           type: boolean
           description: Indicates whether applicant is requesting overdraft privileges
           example: false
         approvalStatus:
           type: string
-          description: Status of the application approval process
-          enum: ['APPROVED', 'REFER']
+          description: Status of the application approval process.
+          enum: ['APPROVED', 'REFER', 'REJECTED']
           example: 'APPROVED'
     ApplicantSchema:
       type: object
@@ -7706,12 +7690,13 @@ components:
         - email
         - name
         - dateOfBirth
-        - phoneNumbers
+        - socialSecurityNumber
         - addresses
+        - phoneNumbers
       properties:
         _id:
           type: string
-          description: Applicant ID
+          description: Internal applicant ID
           example: '56632a12-1bd7-4014-8571-cff53c346738'
         type:
           type: string
@@ -7727,13 +7712,17 @@ components:
           $ref: '#/components/schemas/NameSchema'
         dateOfBirth:
           #### Britt TODO: Make AO a ticket to update for 3.0 or update these docs.
-          type: number
+          type: string
           description: Applicant birth date, UNIX timestamp (milliseconds)
-          example: 1537222722246
+          example: '1537222722246'
         socialSecurityNumber:
           type: string
           description: Applicant SSN
           example: '111224444'
+        creditConsentIndicator:
+          type: boolean
+          description: Indicates whether applicant consented to credit policy for Identity Verification purposes.
+          example: true
         addresses:
           description: List of applicant addresses, current or mailing
           type: array
@@ -7744,97 +7733,25 @@ components:
           description: List of phone numbers associated with applicant
           type: array
           items:
-            required:
-              - type
-              - value
-            properties:
-              type:
-                type: string
-                description: Type of phone number
-                enum: ['CELL', 'HOME', 'WORK']
-                example: 'CELL'
-              value:
-                type: number
-                description: Phone number
-                example: 5551112222
+            $ref: '#/components/schemas/AccountApplicationPhoneNumberSchema'
         identityVerificationStatus:
-          type: object
-          description: Information regarding id verification for applicant
-          required:
-            - _id
-          properties:
-            _id:
-              type: string
-              description: Internal ID of idVerification process
-              example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
-            statusType:
-              type: string
-              description: Result of identity verification process
-              enum: ['VERIFIED', 'REJECT', 'SERVICE_UNAVAILABLE']
-              example: 'VERIFIED'
-            code:
-              type: string
-              description: Reason code related to verification
-              enum: ['OFAC_MATCH']
-              example: 'OFAC_MATCH'
-            provider:
-              type: object
-              description: Provider metadata object
-              required:
-                - _id
-              properties:
-                _id:
-                  type: string
-                  description: Internal _id of the provider
-                  enum: ['CROSSCORE']
-                  example: 'CROSSCORE'
-                references:
-                  type: object
-                  description: References to external provider
-                  properties:
-                    clientReferenceId:
-                      type: string
-                      description: Unique Id passed to crosscore for referencing
-                    expRequestId:
-                      type: string
-                      description: Id returned from crosscore
+          $ref: '#/components/schemas/IdentityVerificationSchema'
         identityDocumentation:
-          type: object
-          description: ID Document
-          required:
-            - type
-            - value
-            - issueDate
-            - expiryDate
-          properties:
-            type:
-              type: string
-              description: Type of ID document provided by applicant
-              enum: ['DRIVERS_LICENSE', 'DRIVERS_PRIVILEGE_CARD', 'CANADIAN_DRIVERS_LICENSE', 'STATE_ID', 'CANADIAN_STATE_ID', 'US_PASSPORT', 'US_PASSPORT_CARD', 'FOREIGN_PASSPORT', 'MILITARY_ID', 'CONSULAR_ID', 'TRIBAL_ID']
-              example: 'US_PASSPORT'
-            value:
-              type: string
-              description: ID document number
-              example: 'S123000U'
-            stateCode:
-              type: string
-              description: 2-digit code of state that issued the ID document
-              example: 'CA'
-            issueDate:
-              #### Britt TODO: Make a ticket or update these docs
-              type: number
-              description: Date when ID document was issued, UNIX Timestamp (milliseconds)
-              example: 1529360743127
-            expiryDate:
-              #### Britt TODO: Make a ticket or update these docs
-              type: number
-              description: Date when ID document expires, UNIX Timestamp (milliseconds)
-              example: 1529360993127
+          $ref: '#/components/schemas/IdentityDocumentationSchema'
         employers:
           type: array
           description: List of applicant's employers
           items:
             $ref: '#/components/schemas/EmployerSchema'
+        employments:
+          type: array
+          description: List of applicant's employments
+          items:
+            $ref: '#/components/schemas/EmploymentSchema'
+        coreBankingId:
+          type: string
+          description: Unique identifier for customer's core banking system.
+          example: 'b258096c-c5f3-410f-ba56-08801f1a8752'
     AccountApplicationAddressSchema:
       type: object
       required:
@@ -7842,7 +7759,6 @@ components:
         - type
         - lineText
         - cityName
-        - countyName
         - stateCode
         - zipCode
       properties:
@@ -7879,6 +7795,204 @@ components:
           type: string
           description: 5-digit zip code
           example: '10001'
+    AccountApplicationPhoneNumberSchema:
+      type: object
+      required:
+        - type
+        - value
+      properties:
+        type:
+          type: string
+          description: Type of phone number
+          enum: ['CELL', 'HOME', 'WORK']
+          example: 'CELL'
+        value:
+          type: number
+          description: Phone number
+          example: 5551112222
+    AuthorizedUserSchema:
+      type: object
+      required:
+        - _id
+        - email
+        - name
+        - dateOfBirth
+        - socialSecurityNumber
+        - phoneNumbers
+        - addresses
+      properties:
+        _id:
+          type: string
+          description: Internal authorized user ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        email:
+          type: string
+          description: Authorized User email address
+          example: 'jane.smith@company.com'
+        name:
+          description: Authorized User name
+          $ref: '#/components/schemas/NameSchema'
+        dateOfBirth:
+          type: string
+          description: Authorized User birth date, UNIX timestamp (milliseconds)
+          example: '1537222722246'
+        socialSecurityNumber:
+          type: string
+          description: Authorized User SSN
+          example: '111224444'
+        addresses:
+          description: List of authorized User addresses, current or mailing
+          type: array
+          items:
+            $ref:
+              '#/components/schemas/AccountApplicationAddressSchema'
+        phoneNumbers:
+          description: List of phone numbers associated with authorized User
+          type: array
+          items:
+            $ref:
+              '#/components/schemas/AccountApplicationPhoneNumberSchema'
+        identityVerification:
+          $ref: '#/components/schemas/IdentityVerificationSchema'
+    BeneficiarySchema:
+      type: object
+      required:
+        - _id
+        - type
+        - name
+        - dateOfBirth
+        - socialSecurityNumber
+        - phoneNumbers
+        - addresses
+      properties:
+        _id:
+          type: string
+          description: Internal beneficiary ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        type:
+          type: string
+          description: Beneficiary type, primary or contingent
+          enum: ['PRIMARY', 'CONTINGENT']
+          example: 'PRIMARY'
+        name:
+          description: Beneficiary name
+          $ref: '#/components/schemas/NameSchema'
+        relation:
+          type: string
+          description: Authorized User birth date, UNIX timestamp (milliseconds)
+          example: '1537222722246'
+        allocation:
+          type: number
+          description: Percentage allocated to the given beneficiary
+          example: 34.7
+        address:
+          $ref: '#/components/schemas/AccountApplicationAddressSchema'
+    IdentityDocumentationSchema:
+      type: object
+      description: ID Document
+      required:
+        - type
+        - value
+        - issueDate
+        - expiryDate
+      properties:
+        type:
+          type: string
+          description: Type of ID document provided by applicant
+          enum: ['DRIVERS_LICENSE', 'DRIVERS_PRIVILEGE_CARD', 'CANADIAN_DRIVERS_LICENSE', 'STATE_ID', 'CANADIAN_STATE_ID', 'US_PASSPORT', 'US_PASSPORT_CARD', 'FOREIGN_PASSPORT', 'MILITARY_ID', 'CONSULAR_ID', 'TRIBAL_ID']
+          example: 'US_PASSPORT'
+        value:
+          type: string
+          description: ID document number
+          example: 'S123000U'
+        stateCode:
+          type: string
+          description: 2-digit code of state that issued the ID document
+          example: 'CA'
+        country:
+          type: string
+          description: Country that issued the ID document
+          example: 'Taiwan'
+        province:
+          type: string
+          description: Province that issued the ID document
+          example: 'British Columbia'
+        tribe:
+          type: string
+          description: Tribe that issued the ID document
+          example: 'Spokane Tribe'
+        issueDate:
+          #### Britt TODO: Make a ticket or update these docs
+          type: number
+          description: Date when ID document was issued, UNIX Timestamp (milliseconds)
+          example: 1529360743127
+        expiryDate:
+          #### Britt TODO: Make a ticket or update these docs
+          type: number
+          description: Date when ID document expires, UNIX Timestamp (milliseconds)
+          example: 1529360993127
+    IdentityVerificationSchema:
+      type: object
+      description: Information regarding id verification for applicant
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal ID of idVerification process
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        statusType:
+          type: string
+          description: Result of identity verification process
+          enum: ['VERIFIED', 'REJECT', 'SERVICE_UNAVAILABLE']
+          example: 'VERIFIED'
+        provider:
+          type: object
+          description: Provider metadata object
+          required:
+            - _id
+          properties:
+            _id:
+              type: string
+              description: Internal _id of the provider
+              example: 'ALLOY'
+            references:
+              type: object
+              description: References to external provider
+              properties:
+                latestEvaluationURL:
+                  type: string
+                  description: URL for latest evaluation
+    FundingAccountSchema:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal account ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        referenceId:
+          type: string
+          description: External ID or code to reference this account. e.g. share code.
+          example: '0051'
+        type:
+          type: string
+          description: Account type
+          enum: ['CHECKING', 'SAVINGS', 'CERTIFICATE_OF_DEPOSIT', 'HSA']
+          example: 'CHECKING'
+        description:
+          type: string
+          description: Additional text describing account
+          example: 'Premium Checking Account'
+        accountNumber:
+          type: number
+          description: Account number
+          example: 33112244
+        routingNumber:
+          type: string
+          description: Routing number
+          example: '00227799'
     AccountSchema:
       type: object
       required:
@@ -7895,7 +8009,7 @@ components:
         type:
           type: string
           description: Account type
-          enum: ['CHECKING', 'SAVINGS']
+          enum: ['CHECKING', 'SAVINGS', 'CERTIFICATE_OF_DEPOSIT', 'HSA']
           example: 'CHECKING'
         description:
           type: string
@@ -7909,6 +8023,27 @@ components:
           type: string
           description: Routing number
           example: '00227799'
+        isPrimary:
+          type: boolean
+          description: Indicator for primary account on application
+          example: true
+        authorizedUsers:
+          type: array
+          description: Authorized Users collected for the given account.
+          items:
+            $ref: '#/components/schemas/AuthorizedUserSchema'
+        beneficiaries:
+          type: array
+          description: Beneficiaries collected for the given account.
+          items:
+            $ref: '#/components/schemas/BeneficiarySchema'
+    AnswerSchema:
+      type: object
+      required:
+        - answer
+      properties:
+        answer:
+          description: Value for a configured field.
     FundingSchema:
       type: object
       required:
@@ -7918,10 +8053,10 @@ components:
       properties:
         sourceAccount:
           description: Source account used to transfer funds
-          $ref: '#/components/schemas/AccountSchema'
+          $ref: '#/components/schemas/FundingAccountSchema'
         destinationAccount:
           description: Destination account for funds
-          $ref: '#/components/schemas/AccountSchema'
+          $ref: '#/components/schemas/FundingAccountSchema'
         amount:
           type: number
           description: Amount being transferred
@@ -7930,12 +8065,18 @@ components:
       type: object
       required:
         - _id
+        - type
         - name
       properties:
         _id:
           type: string
           description: Internal employer ID
           example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        type:
+          type: string
+          description: Type of employment.
+          enum: ['CURRENT', 'FORMER']
+          example: 'CURRENT'
         referenceId:
           type: string
           description: External employer reference ID. e.g. select employee group number.
@@ -7947,6 +8088,108 @@ components:
         address:
           description: Employer address
           $ref: '#/components/schemas/AccountApplicationAddressSchema'
+    EmploymentSchema:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Type of employment.
+          enum: ['CURRENT', 'FORMER']
+          example: 'CURRENT'
+        jobTitle:
+          type: string
+          description: Job Title
+          example: 'Account Executive'
+        annualIncome:
+          type: string
+          description: Annual income range for given employment
+          enum: ['BELOW_10K', 'BELOW_25K', 'BELOW_50K', 'BELOW_100K', 'BELOW_150K', 'BELOW_200K', 'ABOVE_200K']
+          example: 'BELOW_50K'
+        hireDate:
+          type: string
+          description: Date of hire for given employment
+          example: '2017-12-12T00:00:00.000Z'
+    PatchApplicationSchema:
+      type: object
+      properties:
+        referenceId:
+          type: string
+          description: Optional reference ID for matching records with Blend's application object
+          example: '200ABC123'
+        approvalStatus:
+          type: string
+          description: Decision regarding opening the account
+          enum: ['APPROVED', 'REFER', 'REJECTED']
+          example: 'APPROVED'
+        accounts:
+          type: array
+          description: List of accounts with their account/routing numbers
+          items:
+            $ref: '#/components/schemas/PatchAccountSchema'
+        applicants:
+          type: array
+          description: List of applicants with their member numbers
+          items:
+            $ref: '#/components/schemas/PatchApplicantSchema'
+        integrationEvent:
+          $ref: '#/components/schemas/IntegrationEventSchema'
+    PatchAccountSchema:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal account ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        accountNumber:
+          type: string
+          description: Account number of booked account
+          example: '33112244'
+        routingNumber:
+          type: string
+          description: Routing number of booked account
+          example: '00227799'
+    PatchApplicantSchema:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal applicant ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        memberNumber:
+          type: string
+          description: Member number of applicant
+          example: '9083409234'
+    IntegrationEventSchema:
+      type: object
+      required:
+        - type
+        - status
+      properties:
+        type:
+          type: string
+          description: The type of integration event which is being completed
+          enum: ['applicationSubmitted', 'accountReadyToFund']
+          example: 'applicationSubmitted'
+        status:
+          type: string
+          description: The final status of the integration event which is being completed
+          enum: ['SUCCEEDED', 'FAILED_NON_RETRYABLE', 'FAILED_RETRYABLE']
+          example: 'SUCCEEDED'
+        failureCode:
+          type: string
+          description: Corresponding reason for integration event failure
+          enum: ['CORE_DOWN_FOR_MAINTENANCE', 'PARTIAL_CREATION', 'EXISTING_USER']
+          example: 'CORE_DOWN_FOR_MAINTENANCE'
+        failureMessage:
+          type: string
+          description: Message explaining why the integration event failed
+          example: 'User already exists in the core'
     PackageBorrowerMetadataSchema:
       type: object
       required:
@@ -10145,7 +10388,7 @@ components:
           example: '2020-04-19T02:35:00.789Z'
         envelopes:
           type: array
-          description: An envelope describes the signing stragegy and the recipient assignment within the package.
+          description: An envelope describes the signing strategy and the recipient assignment within the package.
           items:
             anyOf:
             - $ref: '#/components/schemas/ESignEnvelopePostSchema'
@@ -10278,11 +10521,12 @@ components:
                     - $ref: '#/components/schemas/EsignNoteSchema'
               tabExtractionMethod:
                 type: string
-                enum: ['EXPERE_ACROFORM']
+                enum: ['EXPERE_ACROFORM', 'ENCOMPASS']
                 description: If tabs must be extracted from embedded fields, specify the extraction method to use.
                 example: 'EXPERE_ACROFORM'
               extractTabs:
                 type: array
+                description: If additional information is required for tab extraction (which it is for EXPERE_ACROFORM documents), include it in extractTabs.
                 items:
                   type: object
                   anyOf:
@@ -10590,7 +10834,7 @@ components:
           example: 'b2006f70-a19c-4b9f-973d-3a561e159061'
         envelopes:
           type: array
-          description: An envelope describes the signing stragegy and the recipient assignment within the package
+          description: An envelope describes the signing strategy and the recipient assignment within the package
           items:
             $ref: '#/components/schemas/EnvelopeResponseSchema'
     EnvelopeResponseSchema:
@@ -10976,6 +11220,7 @@ components:
               homeTelephoneNumber: '4105551040'
             - firstName: 'John'
               lastName: 'Anderson'
+          MIN: '100012398765432127'
     SmartDocLoanTypeFormId:
       type: string
       enum:
@@ -11080,6 +11325,7 @@ components:
           example: 'Sr'
         homeTelephoneNumber:
           type: string
+          description: Home telephone number. Only digits, no punctuation.
           pattern: '^\d+$'
           example: '4105551040'
         powerOfAttorney:
@@ -11094,11 +11340,13 @@ components:
               $ref: '#/components/schemas/SmartDocUnparsedNameType'
     SmartDocCityType:
       type: string
+      description: The name of the city.
       minLength: 1
       maxLength: 26
       example: 'New York'
     SmartDocStateType:
       type: string
+      description: The two-character representation of the US state, US Territory, Canadian Province, Military APO FPO, or Territory.
       enum:
         - AL
         - AK
@@ -11165,6 +11413,7 @@ components:
           $ref: '#/components/schemas/SmartDocStateType'
         postalCode:
           type: string
+          description: The postal code (ZIP Code in the US) for the address. ZIP Code may be either 5 or 9 digits.
           pattern: '^\d{5}(\d{4})?$'
           example: 10036
     SmartDocAddressComponentType:
@@ -11172,12 +11421,14 @@ components:
       minLength: 1
       maxLength: 240
     SmartDocPostalAddress:
-      type: object
-      required:
-        - streetAddress
-      properties:
-        streetAddress:
-          $ref: '#/components/schemas/SmartDocAddressComponentType'
+      allOf:
+        - $ref: '#/components/schemas/SmartDocCityStateZip'
+        - type: object
+          required:
+            - streetAddress
+          properties:
+            streetAddress:
+              $ref: '#/components/schemas/SmartDocAddressComponentType'
     SmartDocAgentType:
       type: string
       enum:
@@ -11208,6 +11459,7 @@ components:
           $ref: '#/components/schemas/SmartDocContactNameType'
     SmartDocNMLSRID:
       type: integer
+      description: Nationwide Multistate Licensing System ID number. Up to 6 digits and must be ≥ 1.
       minimum: 1
       maximum: 999999
       example: 665444
@@ -11317,32 +11569,57 @@ components:
             county:
               $ref: '#/components/schemas/SmartDocCountyType'
     SmartDocClosingDocumentInfo:
-      type: object
-      required:
-        - lender
-        - loanOriginator
-        - executionDate
-        - executionCity
-        - executionState
-      properties:
-        agent:
-          $ref: '#/components/schemas/SmartDocAgent'
-        lender:
-          $ref: '#/components/schemas/SmartDocLender'
-        loanOriginator:
-          $ref: '#/components/schemas/SmartDocLoanParty'
-        companyMortgageBroker:
-          $ref: '#/components/schemas/SmartDocLoanParty'
-        individualMortgageBroker:
-          $ref: '#/components/schemas/SmartDocLoanParty'
-        executionDate:
-          type: string
-          format: date-time
-          example: '2018-03-14'
-        executionCity:
-          $ref: '#/components/schemas/SmartDocCityType'
-        executionState:
-          $ref: '#/components/schemas/SmartDocStateType'
+      oneOf:
+        - type: object
+          required:
+            - lender
+            - loanOriginator
+            - executionDate
+            - executionCity
+            - executionState
+          properties:
+            agent:
+              $ref: '#/components/schemas/SmartDocAgent'
+            lender:
+              $ref: '#/components/schemas/SmartDocLender'
+            loanOriginator:
+              $ref: '#/components/schemas/SmartDocLoanParty'
+            executionDate:
+              type: string
+              format: date
+              example: '2018-03-14'
+            executionCity:
+              $ref: '#/components/schemas/SmartDocCityType'
+            executionState:
+              $ref: '#/components/schemas/SmartDocStateType'
+        - type: object
+          required:
+            - lender
+            - loanOriginator
+            - companyMortgageBroker
+            - individualMortgageBroker
+            - executionDate
+            - executionCity
+            - executionState
+          properties:
+            agent:
+              $ref: '#/components/schemas/SmartDocAgent'
+            lender:
+              $ref: '#/components/schemas/SmartDocLender'
+            loanOriginator:
+              $ref: '#/components/schemas/SmartDocLoanParty'
+            companyMortgageBroker:
+              $ref: '#/components/schemas/SmartDocLoanParty'
+            individualMortgageBroker:
+              $ref: '#/components/schemas/SmartDocLoanParty'
+            executionDate:
+              type: string
+              format: date
+              example: '2018-03-14'
+            executionCity:
+              $ref: '#/components/schemas/SmartDocCityType'
+            executionState:
+              $ref: '#/components/schemas/SmartDocStateType'
     SmartDocPercentage:
       type: number
       minimum: 0
@@ -11370,11 +11647,13 @@ components:
           $ref: '#/components/schemas/SmartDocClosingDocumentInfo'
         lenderLoanId:
           type: string
+          description: The identifier assigned by the originating Lender to be referenced as the Loan ID/Number on all settlement documents, notes, riders, etc.
           minLength: 1
           maxLength: 60
           example: '777777777'
         lienPriorityType:
           type: string
+          description: Specifies the priority of the lien against the subject property.
           enum:
             - FirstLien
             - SecondLien
@@ -11384,22 +11663,25 @@ components:
         noteRatePercent:
           $ref: '#/components/schemas/SmartDocPercentage'
         originalLoanAmount:
-          description: The original loan amount will be pulled from Blend if not specified.
+          description: The amount to be repaid as disclosed on the Note. Will be pulled from Blend if not specified.
           type: number
           minimum: 1
           maximum: 999999999.99
           example: 30000000
         loanMaturityDate:
           type: string
-          format: date-time
+          description: The date when the loan is scheduled to be paid in full as reflected on the Note.
+          format: date
           example: '2048-12-13'
         originalPrincipalAndInterestPaymentAmount:
           type: number
+          description: The dollar amount of the principal and interest payment as stated on the Note. The principal and interest payment is usually obtained using the loan amount and interest rate to arrive at full amortization during the loan term.
           minimum: 1
           maximum: 999999999.99
           example: 14460.45
         lateChargeGracePeriod:
           type: integer
+          description: The grace period in days for this loan before a late charge will be applied.
           minimum: 1
           maximum: 365
           example: 8
@@ -11407,6 +11689,7 @@ components:
           $ref: '#/components/schemas/SmartDocPercentage'
         lateChargeMaximumAmount:
           type: number
+          description: The maximum monthly late charge amount allowed.
           minimum: 1
           maximum: 9999999.99
           example: 20.15
@@ -11421,6 +11704,7 @@ components:
           $ref: '#/components/schemas/SmartDocUnparsedNameType'
     SmartDocAgencyCaseIdentifierType:
       type: string
+      description: An identifier assigned by a government agency (for example FHA Case Number, VA Case Number). The identifier is used by the agency to identify a loan.
       minLength: 1
       maxLength: 20
       pattern: '^[0-9a-zA-z\\-]+$'
@@ -11437,10 +11721,12 @@ components:
               $ref: '#/components/schemas/SmartDocLoanTypeFormId'
             scheduledFirstPaymentDate:
               type: string
-              format: date-time
+              description: The date of the first scheduled mortgage payment to be made by the borrower under the terms of the mortgage.
+              format: date
               example: '2018-03-14'
             paymentRemittanceDay:
               type: integer
+              description: The day of the month on which the loan payment is to be remitted under the terms of the Mortgage.
               minimum: 1
               maximum: 31
               example: 3
@@ -11466,21 +11752,28 @@ components:
           properties:
             scheduledFirstPaymentDate:
               type: string
-              format: date-time
-              example: '2018-03-14'
+              description: The month and year of the first scheduled mortgage payment to be made by the borrower under the terms of the mortgage. Must be in YYYY-MM format. The first day of the month is assumed.
+              format: date
+              example: '2018-03'
             dateOfFirstChange:
               type: string
-              format: date-time
+              description: The due date of the payment at the first calculated interest rate change. To arrive at the actual (true) date that interest begins to accrue at the changed rate one payment period is subtracted if interest is paid in arrears. Must be in YYYY-MM format.
+              format: date
+              example: 2018-04
             changePercentagePoints:
               type: number
+              description: The number of percentage points to be added to the index to arrive at the new interest rate.
             changePercentagePointsWords:
               $ref: '#/components/schemas/SmartDocPointWordsType'
             greaterLimitPoints:
               type: number
+              description: The stated maximum, expressed as a percent, to which the interest rate can increase to in this adjustment period.
             lowerLimitPoints:
               type: number
+              description: The stated minimum, expressed as a percent, to which the interest rate can decrease to in this adjustment period.
             maxLimitPoints:
               type: number
+              description: The stated maximum percentage to which the interest rate can increase over the life of the loan.
             lifetimeCapRate:
               $ref: '#/components/schemas/SmartDocPercentage'
             lifetimeFloorPercent:
@@ -11523,11 +11816,10 @@ components:
           items:
             $ref: '#/components/schemas/SmartDocSigner'
         MIN:
-          description: Required in production environment.
-          type: integer
-          minimum: 100000000000000000
-          maximum: 999999999999999999
-          example: 999916100056729656
+          description: Mortgage Identification Number. 18-digit number passed as a string whose last digit is a control digit. Required in production environment.
+          type: string
+          pattern: '^\d{18}$'
+          example: '100012398765432127'
     SmartDocFixedLoan:
       allOf:
         - $ref: '#/components/schemas/SmartDocBaseDoc'
