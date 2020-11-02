@@ -452,7 +452,7 @@ paths:
                   success:
                     type: array
                     items:
-                      $ref: '#/components/schemas/ExportStatusRecordSchema'
+                      $ref: '#/components/schemas/ExportStatusSchema'
                   error:
                     type: string
                     nullable: true
@@ -468,7 +468,7 @@ paths:
                   success:
                     type: array
                     items:
-                      $ref: '#/components/schemas/ExportStatusRecordSchema'
+                      $ref: '#/components/schemas/ExportStatusSchema'
                   error:
                     type: array
                     items:
@@ -503,7 +503,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExportStatusSchema'
+              $ref: '#/components/schemas/PostExportStatusSchema'
             example:
               status: 'IN_PROGRESS'
               reason: 'The application export started'
@@ -513,7 +513,7 @@ paths:
           content:
             application/json; charset=utf-8:
               schema:
-                $ref: '#/components/schemas/ExportStatusSchema'
+                $ref: '#/components/schemas/PostExportStatusSchema'
         401:
           description: Invalid Credentials
           content:
@@ -4027,7 +4027,7 @@ MAolJUVPRgo='
                   description: UTC Timestamp of Date of Birth
                   example: '2018-10-03T20:07:27+00:00'
                 homePhone:
-                  type: integer
+                  type: string
                   description: Nine-digit home phone number
                   example: '1112223333'
                 currentAddress:
@@ -4126,7 +4126,7 @@ MAolJUVPRgo='
                   description: UTC Timestamp of Date of Birth
                   example: '2018-10-03T20:07:27+00:00'
                 homePhone:
-                  type: integer
+                  type: string
                   description: Nine-digit home phone number
                   example: '1112223333'
                 currentAddress:
@@ -5090,13 +5090,13 @@ MAolJUVPRgo='
                     example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
         400:
           description: Invalid Request
-  /reporting/followups:
+  /reporting/follow-ups:
     get:
       tags:
         - Reporting
-      description: Return a paginated list of individual followup data.
-      summary: Retrieve Followups data
-      operationId: Get Followups Report
+      description: Return a paginated list of individual follow-up data.
+      summary: Retrieve Follow-ups data
+      operationId: Get Follow-ups Report
       parameters:
         - name: createdAfter
           in: query
@@ -6037,6 +6037,53 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
+    delete:
+      operationId: Delete Closing eNote
+      summary: Remove the eNote from a Closing
+      description: Removes the eNote from the Closing to make way for a paper note.
+      tags:
+        - Close
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Closing ID
+          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+      responses:
+        200:
+          description: The eNote has been successfully removed.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Closing Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ClosingNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
   /close/closings/{id}/send:
     post:
       operationId: Post Closing Send
@@ -6366,7 +6413,7 @@ components:
           description: UTC Timestamp of the Date of Birth
           example: '2018-10-03T20:07:27+00:00'
         homePhone:
-          type: integer
+          type: string
           description: Nine-digit home phone number
           example: '1112223333'
         currentAddress:
@@ -8247,12 +8294,11 @@ components:
         - applicationId
       properties:
         applicationId:
-          type: string
-          description: The UUID associated with the application
+          $ref: '#/components/schemas/ApplicationId'
         status:
           type: string
           description: ENUM describing the status of this application's export to an external system
-          enum: ['IN_PROGRESS', 'DELETED', 'SUCCESS']
+          enum: ['IN_PROGRESS', 'FAILED', 'SUCCESS']
         reason:
           type: string
           description: Further explanation for the assigned status
@@ -8262,22 +8308,19 @@ components:
           format: date-time
           description: UTC Timestamp of last update to status
           example: '2018-08-30T19:31:38.902Z'
-    ExportStatusRecordSchema:
+    PostExportStatusSchema:
       type: object
-      allOf:
-        - $ref: '#/components/schemas/ExportStatusSchema'
-        - type: object
-          required:
-            - applicationId
-            - status
-          properties:
-            applicationId:
-              $ref: '#/components/schemas/ApplicationId'
-            lastUpdated:
-              type: string
-              format: date-time
-              description: UTC Timestamp of last update to status
-              example: '2018-08-30T19:31:38.902Z'
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: ENUM describing the status of this application's export to an external system
+          enum: ['IN_PROGRESS', 'FAILED', 'SUCCESS']
+        reason:
+          type: string
+          description: Further explanation for the assigned status
+          example: 'import failed on los'
     NotAuthorizedErrorSchema:
       type: object
       required:
@@ -9854,6 +9897,7 @@ components:
         - applicationId
         - type
         - status
+        - requestedAt
         - context
       properties:
         id:
@@ -9871,6 +9915,11 @@ components:
           $ref: '#/components/schemas/FollowUpClientFollowUpReferenceId'
         dueDate:
           $ref: '#/components/schemas/FollowUpDueDate'
+        requestedAt:
+          type: string
+          format: date-time
+          description: UTC Timestamp of when the follow-up was requested
+          example: '2018-07-31T00:00:00+00:00Z'
         context:
           oneOf:
             - $ref: '#/components/schemas/BaseFollowUpContext'
@@ -9897,6 +9946,7 @@ components:
               W2: '#/components/schemas/W2FollowUpContext'
               SYSTEM: '#/components/schemas/SystemFollowUpContext'
     BasePostFollowUpContext:
+      title: 'Default context'
       type: object
       description: Default required context for creating follow-ups
       required:
@@ -9905,6 +9955,7 @@ components:
         partyId:
           type: string
     BaseFollowUpContext:
+      title: 'Default context'
       description: Default context for follow-ups
       allOf:
         - $ref: '#/components/schemas/BasePostFollowUpContext'
@@ -9913,6 +9964,7 @@ components:
             documents:
               $ref: '#/components/schemas/DocumentFollowUpSubContext'
     PostDocumentRequestFollowUpContext:
+      title: 'DOCUMENT_REQUEST'
       type: object
       description: Required context for creating follow-ups of type 'DOCUMENT_REQUEST'
       required:
@@ -9933,6 +9985,7 @@ components:
               description: Document follow-up display title. Required when type is 'OTHER'.
               example: 'Custom title'
     PatchDocumentRequestFollowUpContext:
+      title: 'DOCUMENT_REQUEST'
       type: object
       description: Optional context for patching follow-ups of type 'DOCUMENT_REQUEST'
       properties:
@@ -9943,6 +9996,7 @@ components:
               description: Document follow-up display title.
               example: 'Custom title'
     DocumentRequestFollowUpContext:
+      title: 'DOCUMENT_REQUEST'
       type: object
       description: Context returned on follow-ups of type 'DOCUMENT_REQUEST'
       required:
@@ -9963,6 +10017,7 @@ components:
               description: Document follow-up display title. Required when type is 'OTHER'.
               example: 'Custom title'
     PostDocumentSignatureFollowUpContext:
+      title: 'DOCUMENT_SIGNATURE'
       type: object
       description: Required context for creating follow-ups of type 'DOCUMENT_SIGNATURE.' `document.id` should not be re-used between follow-ups on the same application.
       required:
@@ -9992,6 +10047,7 @@ components:
                   tabs:
                     $ref: '#/components/schemas/TabSchema'
     PatchDocumentSignatureFollowUpContext:
+      title: 'DOCUMENT_SIGNATURE'
       type: object
       description: Optional context for patching follow-ups of type 'DOCUMENT_SIGNATURE'
       properties:
@@ -10002,6 +10058,7 @@ components:
               description: Document signature follow-up display title.
               example: 'Custom title'
     DocumentSignatureFollowUpContext:
+      title: 'DOCUMENT_SIGNATURE'
       type: object
       description: Context returned on follow-ups of type 'DOCUMENT_SIGNATURE'
       required:
@@ -10029,6 +10086,7 @@ components:
                   partyId:
                     type: string
     PatchReviewDocumentsFollowUpContext:
+      title: 'REVIEW_DOCUMENTS'
       type: object
       description: Optional context for patching follow-ups of type 'REVIEW_DOCUMENTS'
       properties:
@@ -10037,6 +10095,7 @@ components:
           description: Review documents follow-up display title.
           example: 'Custom title'
     ReviewDocumentsFollowUpContext:
+      title: 'REVIEW_DOCUMENTS'
       type: object
       description: Required context for follow-ups of type 'REVIEW_DOCUMENTS'
       required:
@@ -10059,8 +10118,9 @@ components:
           description: Review documents follow-up display title.
           example: 'Review custom document'
     PatchPaymentCollectionFollowUpContext:
+      title: 'PAYMENT_COLLECTION'
       type: object
-      description: Optional context for patching follow-ups of type 'REVIEW_DOCUMENTS'
+      description: Optional context for patching follow-ups of type 'PAYMENT_COLLECTION'
       properties:
         lineItems:
           type: array
@@ -10069,8 +10129,9 @@ components:
         title:
           $ref: '#/components/schemas/PaymentCollectionTitle'
     PaymentCollectionFollowUpContext:
+      title: 'PAYMENT_COLLECTION'
       type: object
-      description: Required context for creating follow-ups of type 'PAYMENT_COLLECTION'
+      description: Required context for follow-ups of type 'PAYMENT_COLLECTION'
       required:
         - partyId
         - lineItems
@@ -10108,6 +10169,7 @@ components:
           id:
             type: string
     PostTaxReturnFollowUpContext:
+      title: 'TAX_RETURN'
       type: object
       description: Required context for creating follow-ups of type 'TAX_RETURN'
       required:
@@ -10120,6 +10182,7 @@ components:
           type: number
           example: 2018
     TaxReturnFollowUpContext:
+      title: 'TAX_RETURN'
       type: object
       description: Context returned on follow-ups of type 'TAX_RETURN'
       allOf:
@@ -10129,6 +10192,7 @@ components:
             documents:
               $ref: '#/components/schemas/DocumentFollowUpSubContext'
     PostTaxTranscriptsFollowUpContext:
+      title: 'TAX_TRANSCRIPTS'
       type: object
       description: Required context for creating follow-ups of type 'TAX_TRANSCRIPTS'
       required:
@@ -10143,6 +10207,7 @@ components:
             type: number
             example: [2017, 2018]
     TaxTranscriptsFollowUpContext:
+      title: 'TAX_TRANSCRIPTS'
       type: object
       description: Context returned on follow-ups of type 'TAX_TRANSCRIPTS'
       allOf:
@@ -10152,6 +10217,7 @@ components:
             documents:
               $ref: '#/components/schemas/DocumentFollowUpSubContext'
     PostW2FollowUpContext:
+      title: 'W2'
       type: object
       description: Required context for creating follow-ups of type 'W2'
       required:
@@ -10164,6 +10230,7 @@ components:
           type: number
           example: 2019
     W2FollowUpContext:
+      title: 'W2'
       type: object
       description: Context returned on follow-ups of type 'W2'
       required:
@@ -10175,6 +10242,7 @@ components:
           type: number
           example: 2019
     SystemFollowUpContext:
+      title: 'SYSTEM'
       type: object
       description: Context returned on follow-ups of type 'SYSTEM'
       required:
@@ -10553,6 +10621,7 @@ components:
               type: integer
               example: 0
     EsignSignHereSchema:
+      title: "Sign Here Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10577,6 +10646,7 @@ components:
               type: boolean
               example: false
     EsignApproveSchema:
+      title: "Approve Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10603,6 +10673,7 @@ components:
             buttonText:
               type: string
     EsignDateSignedSchema:
+      title: "Date Signed Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10621,6 +10692,7 @@ components:
             name:
               type: string
     EsignCheckboxSchema:
+      title: "Checkbox Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10642,6 +10714,7 @@ components:
               type: boolean
               example: false
     EsignTextSchema:
+      title: "Text Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10672,6 +10745,7 @@ components:
               type: number
               example: 0
     EsignRadioGroupSchema:
+      title: "Radio Group Tab"
       type: object
       required:
         - type
@@ -10705,6 +10779,7 @@ components:
           enum: ['radioGroup']
           example: 'radioGroup'
     EsignInitialHereSchema:
+      title: "Initial Here Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10729,6 +10804,7 @@ components:
               type: boolean
               example: false
     EsignDateSchema:
+      title: "Date Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10750,6 +10826,7 @@ components:
               type: boolean
               example: false
     EsignNoteSchema:
+      title: "Note Tab"
       allOf:
         - $ref: '#/components/schemas/EsignBaseTabAttributesSchema'
         - type: object
@@ -10788,6 +10865,7 @@ components:
         required:
           type: boolean
           description: True if the tab is required to be completed by the recipient in Docusign, false if it is optional. Defaults to true.
+          default: true
           example: true
     PackageResponseSchema:
       type: object
@@ -10936,6 +11014,10 @@ components:
               format: date-time
               description: Timestamp reflecting when the closing was last sent
               example: '2019-10-29T04:25:30.000Z'
+            specialInstructions:
+              type: string
+              description: Special closing instructions
+              example: 'Hi closing team, have a great day!'
     ClosingBaseRecord:
       type: object
       description: Base Closing Record
@@ -10977,6 +11059,10 @@ components:
           type: string
           description: Last name of the closing party
           example: Hernandez
+        phoneNumber:
+          type: string
+          description: Phone number of the closing party
+          example: '4153334444'
         agencyName:
           type: string
           description: Name of the closing party's agency
@@ -10984,8 +11070,8 @@ components:
     ClosingPartyType:
       type: string
       description: The closing party type
-      enum: ['SETTLEMENT', 'TITLE', 'ATTORNEY']
-      example: 'TITLE'
+      enum: ['SETTLEMENT', 'ATTORNEY', 'CLOSER', 'SUPPORTING_PARTY']
+      example: 'SETTLEMENT'
     ClosingParty:
       description: Information about a closing party.
       allOf:
@@ -11011,6 +11097,10 @@ components:
               type: string
               description: Last name of the closing party
               example: Hernandez
+            phoneNumber:
+              type: string
+              description: Phone number of the closing party
+              example: '4153334444'
             principalId:
               type: string
               description: The ID of the record in Blend’s identity service that corresponds to this party
@@ -11042,10 +11132,60 @@ components:
               type: string
               description: Document ID
               example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
+            documentType:
+              $ref: '#/components/schemas/DocumentType'
             sourceType:
               $ref: '#/components/schemas/ClosingSourceType'
             closingDesignation:
               $ref: '#/components/schemas/ClosingDesignation'
+            requireNotarization:
+              type: boolean
+              description: Whether the document requires notarization.
+              default: true
+              example: true
+            signersRequired:
+              type: string
+              enum: ['ALL', 'ANY']
+              description: The signers required for this document.
+              default: 'ALL'
+              example: 'ALL'
+            recipients:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClosingDocumentRecipients'
+    ClosingDocumentRecipients:
+      type: object
+      required:
+        - partyId
+      properties:
+        partyId:
+          type: string
+          format: guid
+          description: Party UUID of signer.
+          example: 'fecbc83e-7fd2-421d-b21d-3b5634d5c5f0'
+        tabExtractionMethod:
+          type: string
+          enum: ['EXPERE_ACROFORM', 'ENCOMPASS', 'MANUAL']
+          description: If omitted, the document is considered view-only for this party. For eSign documents where tabs are expected to be added manually, use value `MANUAL` for `tabExtractionMethod`.
+        extractTabs:
+          type: array
+          description: If additional information is required for tab extraction (which it is for `EXPERE_ACROFORM` documents), include it in `extractTabs`.
+          items:
+            $ref: '#/components/schemas/EsignExtractTabExpereAcroformSchema'
+        tabs:
+          type: array
+          items:
+            type: object
+            anyOf:
+              - $ref: '#/components/schemas/EsignSignHereSchema'
+              - $ref: '#/components/schemas/EsignApproveSchema'
+              - $ref: '#/components/schemas/EsignDateSignedSchema'
+              - $ref: '#/components/schemas/EsignCheckboxSchema'
+              - $ref: '#/components/schemas/EsignTextSchema'
+              - $ref: '#/components/schemas/EsignRadioGroupSchema'
+              - $ref: '#/components/schemas/EsignInitialHereSchema'
+              - $ref: '#/components/schemas/EsignDateSchema'
+              - $ref: '#/components/schemas/EsignNoteSchema'
     ClosingSourceType:
       type: string
       description: The source type
@@ -11095,6 +11235,10 @@ components:
           description: List of closing parties
           items:
             $ref: '#/components/schemas/ClosingPartyPatchRequest'
+        specialInstructions:
+          type: string
+          description: Special closing instructions
+          example: 'Hi closing team, have a great day!'
     ClosingDocumentsPutRequest:
       type: object
       required:
@@ -11119,6 +11263,21 @@ components:
           $ref: '#/components/schemas/ClosingSourceType'
         closingDesignation:
           $ref: '#/components/schemas/ClosingDesignation'
+        requireNotarization:
+          type: boolean
+          description: Whether the document requires notarization.
+          default: true
+          example: true
+        signersRequired:
+          type: string
+          enum: ['ALL', 'ANY']
+          description: The signers required for this document. If provided, you must also provide `recipients`.
+          default: 'ALL'
+          example: 'ALL'
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClosingDocumentRecipients'
     ClosingCreatedResponse:
       type: object
       description: ID of the newly created closing.
@@ -11211,15 +11370,6 @@ components:
               loanOriginator:
                 unparsedName: 'Northstar Lending'
                 nmlsId: 353553
-          signer:
-            - borrowerId: 'Brwr1'
-              firstName: 'John'
-              middleName: 'Michael'
-              lastName: 'Jameson'
-              suffix: 'Jr'
-              homeTelephoneNumber: '4105551040'
-            - firstName: 'John'
-              lastName: 'Anderson'
           MIN: '100012398765432127'
     SmartDocLoanTypeFormId:
       type: string
@@ -11227,7 +11377,32 @@ components:
         - 3200e
         - 3200e-usda
         - 3200e-fha
+        - 3200e-fha-ak
+        - 3200e-fha-fl
+        - 3200e-fha-ia
+        - 3200e-fha-mo
+        - 3200e-fha-nh
+        - 3200e-fha-pa
+        - 3200e-fha-va
+        - 3200e-fha-vt
+        - 3200e-fha-wi
+        - 3200e-fha-wv
         - 3200e-va
+        - 3200e-va2
+        - 3200e-va-ak
+        - 3200e-va-ca
+        - 3200e-va-fl
+        - 3200e-va-la
+        - 3200e-va-me
+        - 3200e-va-nh
+        - 3200e-va-ny
+        - 3200e-va-pa
+        - 3200e-va-tx
+        - 3200e-va-va
+        - 3200e-va-vt
+        - 3200e-va-wi
+        - 3200e-va-wv
+        - 3200e-va-dc
         - 3200e-in
         - 3200e-md
         - 3200e-tx
@@ -11279,65 +11454,11 @@ components:
         - 3528e-wi
         - 3528e-wv
       example: 3501e
-    SmartDocARM3510LoanTypeFormId:
-      type: string
-      enum:
-        - 3510e
-      example: 3510e
-    SmartDocSignerNameType:
-      type: string
-      minLength: 1
-      maxLength: 40
-      example: 'John'
     SmartDocUnparsedNameType:
       type: string
       minLength: 1
       maxLength: 100
       example: 'John M. Jameson Sr'
-    SmartDocSigner:
-      type: object
-      required:
-        - firstName
-        - lastName
-      properties:
-        borrowerId:
-          type: string
-          enum:
-            - Brwr1
-            - Brwr2
-            - Brwr3
-            - Brwr4
-            - Brwr5
-            - Brwr6
-            - Brwr7
-            - Brwr8
-          example: 'Brwr1'
-        firstName:
-          $ref: '#/components/schemas/SmartDocSignerNameType'
-        middleName:
-          $ref: '#/components/schemas/SmartDocSignerNameType'
-        lastName:
-          $ref: '#/components/schemas/SmartDocSignerNameType'
-        suffix:
-          type: string
-          minLength: 1
-          maxLength: 5
-          example: 'Sr'
-        homeTelephoneNumber:
-          type: string
-          description: Home telephone number. Only digits, no punctuation.
-          pattern: '^\d+$'
-          example: '4105551040'
-        powerOfAttorney:
-          type: object
-          required:
-            - unparsedName
-            - signingCapacityTextDescription
-          properties:
-            unparsedName:
-              $ref: '#/components/schemas/SmartDocUnparsedNameType'
-            signingCapacityTextDescription:
-              $ref: '#/components/schemas/SmartDocUnparsedNameType'
     SmartDocCityType:
       type: string
       description: The name of the city.
@@ -11459,9 +11580,9 @@ components:
           $ref: '#/components/schemas/SmartDocContactNameType'
     SmartDocNMLSRID:
       type: integer
-      description: Nationwide Multistate Licensing System ID number. Up to 6 digits and must be ≥ 1.
+      description: Nationwide Multistate Licensing System ID number. Up to 10 digits and must be ≥ 1.
       minimum: 1
-      maximum: 999999
+      maximum: 2147483647
       example: 665444
     SmartDocLender:
       type: object
@@ -11787,34 +11908,9 @@ components:
           properties:
             formId:
               $ref: '#/components/schemas/SmartDocARMLoanTypeFormId'
-    SmartDocARM3510LoanType:
-      allOf:
-        - $ref: '#/components/schemas/SmartDocAbstractARMLoanType'
-        - type: object
-          required:
-            - formId
-            - pointChange
-            - pointChangeWords
-            - precedingMonths
-          properties:
-            formId:
-              $ref: '#/components/schemas/SmartDocARM3510LoanTypeFormId'
-            pointChange:
-              type: number
-            pointChangeWords:
-              $ref: '#/components/schemas/SmartDocPointWordsType'
-            precedingMonths:
-              type: integer
-              minimum: 1
     SmartDocBaseDoc:
       type: object
       properties:
-        signer:
-          type: array
-          minItems: 1
-          maxItems: 8
-          items:
-            $ref: '#/components/schemas/SmartDocSigner'
         MIN:
           description: Mortgage Identification Number. 18-digit number passed as a string whose last digit is a control digit. Required in production environment.
           type: string
@@ -11838,21 +11934,11 @@ components:
           properties:
             armLoan:
               $ref: '#/components/schemas/SmartDocARMLoanType'
-    SmartDocARM3510Loan:
-      allOf:
-        - $ref: '#/components/schemas/SmartDocBaseDoc'
-        - type: object
-          required:
-            - arm3510Loan
-          properties:
-            arm3510Loan:
-              $ref: '#/components/schemas/SmartDocARM3510LoanType'
     SmartDocTemplateData:
       type: object
       oneOf:
         - $ref: '#/components/schemas/SmartDocFixedLoan'
         - $ref: '#/components/schemas/SmartDocArmLoan'
-        - $ref: '#/components/schemas/SmartDocARM3510Loan'
     GetITPResponse:
       type: object
       required:
