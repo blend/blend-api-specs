@@ -2,14 +2,14 @@ openapi: "3.0.0"
 
 x-headers:
   - key: blend-api-version
-    value: 3.0.0
+    value: 3.1.0
   - key: cache-control
     value: no-cache
   - key: Content-Type
     value: application/json
 
 info:
-  version: 3.0.0
+  version: 3.1.0
   title: Blend API
 
 servers:
@@ -113,7 +113,7 @@ paths:
   /home-lending/applications:
     get:
       operationId: Get Home Lending Applications
-      summary: List Home Lending Applications
+      summary: Get Applications
       description: Get a paginated list of active applications sorted by creation date descending. This endpoint also supports a few filtering parameters.
       tags:
         - Home Lending - Applications
@@ -445,7 +445,7 @@ paths:
                   success:
                     type: array
                     items:
-                      $ref: '#/components/schemas/ExportStatusRecordSchema'
+                      $ref: '#/components/schemas/ExportStatusSchema'
                   error:
                     type: string
                     nullable: true
@@ -461,7 +461,7 @@ paths:
                   success:
                     type: array
                     items:
-                      $ref: '#/components/schemas/ExportStatusRecordSchema'
+                      $ref: '#/components/schemas/ExportStatusSchema'
                   error:
                     type: array
                     items:
@@ -496,7 +496,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExportStatusSchema'
+              $ref: '#/components/schemas/PostExportStatusSchema'
             example:
               status: 'IN_PROGRESS'
               reason: 'The application export started'
@@ -506,7 +506,7 @@ paths:
           content:
             application/json; charset=utf-8:
               schema:
-                $ref: '#/components/schemas/ExportStatusSchema'
+                $ref: '#/components/schemas/PostExportStatusSchema'
         401:
           description: Invalid Credentials
           content:
@@ -577,6 +577,51 @@ paths:
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
+    delete:
+      operationId: Delete Application Data
+      summary: Delete Application
+      description: Delete an application
+      tags:
+        - Home Lending - Applications
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApplicationId'
+      responses:
+        200:
+          description: Application Deleted Successfully
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Application Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ApplicationNotFoundErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
     patch:
       operationId: Patch Application
       summary: Patch Application Data
@@ -617,6 +662,8 @@ paths:
                 communityId:
                   type: string
                   description: Unique identifier to determine assignment in construction or branch banking scenarios
+                archivedStatus:
+                  $ref: '#/components/schemas/ArchivedStatusSchema'
             example:
               losId: losId1
               crmId: crmId1
@@ -2710,202 +2757,6 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
-  /borrowers:
-    post:
-      operationId: Post Borrower
-      summary: Add a Borrower to an Application
-      description: Add a borrower to a specific loan. You can only add non-primary borrowers through this endpoint.
-      tags:
-        - Borrowers
-      requestBody:
-        description: Borrower parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-                - email
-              properties:
-                name:
-                  $ref: '#/components/schemas/NameSchema'
-                email:
-                  type: string
-                  example: 'johnhernandez@mail.com'
-                taxpayerIdentifier:
-                  $ref: '#/components/schemas/TaxpayerIdentifierSchema'
-                dateOfBirth:
-                  type: string
-                  format: date-time
-                  description: UTC Timestamp of Date of Birth
-                  example: '2018-10-03T20:07:27+00:00'
-                homePhone:
-                  type: integer
-                  description: Nine-digit home phone number
-                  example: '1112223333'
-                currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
-                loanId:
-                  $ref: '#/components/schemas/ApplicationId'
-                fileNumber:
-                  type: integer
-                  example: 1
-                filePosition:
-                  type: number
-                  example: 1
-                  enum: [1, 2]
-                econsent:
-                  $ref: '#/components/schemas/PostEconsentSchema'
-            example:
-              name:
-                firstName: 'John'
-                lastName: 'Hernandez'
-              email: 'john@email.com'
-              loanId: 'aa9fdaa2-7bf3-4411-a836-c2a46117f5c3'
-      responses:
-        200:
-          description: Created Borrower
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/PartyResponseSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-  /borrowers/{id}:
-    patch:
-      operationId: Patch Borrower
-      summary: Update a Borrower on an Application
-      description: Update a borrower's details.
-      tags:
-        - Borrowers
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Borrower Id
-          example: '9250f84b-c2a1-4cab-b265-bd720685c361'
-      requestBody:
-        description: Borrower update parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  $ref: '#/components/schemas/NameSchema'
-                email:
-                  type: string
-                  example: 'johnhernandez@mail.com'
-                taxpayerIdentifier:
-                  $ref: '#/components/schemas/TaxpayerIdentifierSchema'
-                dateOfBirth:
-                  type: string
-                  format: date-time
-                  description: UTC Timestamp of Date of Birth
-                  example: '2018-10-03T20:07:27+00:00'
-                homePhone:
-                  type: integer
-                  description: Nine-digit home phone number
-                  example: '1112223333'
-                currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
-                econsent:
-                  $ref: '#/components/schemas/PostEconsentSchema'
-            example:
-              name:
-                firstName: 'John'
-                lastName: 'Hernandez'
-              email: 'john@email.com'
-              taxpayerIdentifier:
-                value: '000113933'
-                type: 'SOCIAL_SECURITY_NUMBER'
-              dateOfBirth: '2018-10-03T20:07:27+00:00'
-              homePhone: '1112223333'
-              propertyAddress:
-                streetAddressLine1: '415 Kearny St'
-                city: 'San Francisco'
-                state: 'CA'
-                zipCode: '94108'
-      responses:
-        200:
-          description: Updated Borrower
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/PartyResponseSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-    delete:
-      operationId: Delete Borrower
-      summary: Remove a Borrower from an Application
-      description: Delete borrower from a specific loan.
-      tags:
-        - Borrowers
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Borrower Id
-          example: '9250f84b-c2a1-4cab-b265-bd720685c361'
-      responses:
-        200:
-          description: Successful Deletion
-        401:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
   /parties/{id}/employers:
     get:
       operationId: Get Party Employers
@@ -3676,7 +3527,6 @@ MAolJUVPRgo='
                 - name
                 - email
                 - type
-                - verificationData
               properties:
                 applicationId:
                   $ref: '#/components/schemas/ApplicationId'
@@ -3700,7 +3550,7 @@ MAolJUVPRgo='
                   description: UTC Timestamp of Date of Birth
                   example: '2018-10-03T20:07:27+00:00'
                 homePhone:
-                  type: integer
+                  type: string
                   description: Nine-digit home phone number
                   example: '1112223333'
                 currentAddress:
@@ -3799,7 +3649,7 @@ MAolJUVPRgo='
                   description: UTC Timestamp of Date of Birth
                   example: '2018-10-03T20:07:27+00:00'
                 homePhone:
-                  type: integer
+                  type: string
                   description: Nine-digit home phone number
                   example: '1112223333'
                 currentAddress:
@@ -3901,79 +3751,6 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
-  /account-applications:
-    get:
-      operationId: Get Account Applications
-      summary: List Account Applications
-      description: Get a paginated list of account applications sorted by creation date descending.
-      tags:
-        - Account Opening
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          description: The number of account applications to be returned for this call. Minimum is 1, maximum is 100, default is 50.
-          schema:
-            type: integer
-          example: 50
-        - name: cursor
-          in: query
-          required: false
-          description: An opaque string used for pagination, pass the cursor back to start at this position
-          schema:
-            type: string
-          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
-      responses:
-        200:
-          description: List of paginated account applications, with cursors to go the next or previous pages.
-          content:
-            application/json; charset=utf-8:
-              schema:
-                type: object
-                properties:
-                  data:
-                    description: An array of account applications
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AccountApplicationSchema'
-                  nextCursor:
-                    description: Cursor to use to get to the next set of account applications
-                    type: string
-                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
-                  prevCursor:
-                    description: Cursor to use to get to the previous set of account applications
-                    type: string
-                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        422:
-          description: Invalid Update
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidUpdateErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
   /account-applications/{id}:
     get:
       operationId: Get Account Opening Application Data
@@ -4041,25 +3818,7 @@ MAolJUVPRgo='
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                referenceId:
-                  type: string
-                  description: Optional reference ID for matching records with Blend's application object
-                  example: '200ABC123'
-                approvalStatus:
-                  type: string
-                  description: Decision regarding opening the account
-                  enum: ['APPROVED', 'REFER']
-                  example: 'APPROVED'
-                accounts:
-                  type: array
-                  description: List of accounts with their accountNumbers
-                  items:
-                    $ref: '#/components/schemas/AccountSchema'
-            example:
-              referenceId: 'accountRefId'
-              approvalStatus: 'APPROVED'
+              $ref: '#/components/schemas/PatchApplicationSchema'
       responses:
         200:
           description: Updated Application
@@ -4086,7 +3845,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of loans data.
-      summary: List Loan Reporting Data
+      summary: Retrieve Basic Loan Data
       operationId: Get Loans Report
       parameters:
         - name: startDate
@@ -4192,7 +3951,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of borrower data.
-      summary: List Borrower Reporting Data
+      summary: Retrieve Borrower Users
       operationId: Get Borrowers Report
       parameters:
         - name: activationStartDate
@@ -4253,7 +4012,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of lenders data.
-      summary: List Lender Reporting Data
+      summary: Retrieve Lender Users
       operationId: Get Lenders Report
       parameters:
         - name: activationStartDate
@@ -4314,7 +4073,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of lenders statistic data.
-      summary: List Lender Statistics
+      summary: Retrieve Lender Stats
       operationId: Get Lenders Statistics Report
       parameters:
         - name: activationStartDate
@@ -4375,7 +4134,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: This captures only the borrower's activity within Blend on the process-level.
-      summary: List Borrower Activities
+      summary: Retrieve Borrower Workflows
       operationId: Get Activities Report
       parameters:
         - name: startDate
@@ -4436,7 +4195,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of nps data.
-      summary: List NPS Data
+      summary: Retrieve NPS and Comments
       operationId: Get NPS Report
       parameters:
         - name: startDate
@@ -4458,7 +4217,7 @@ MAolJUVPRgo='
         - name: limit
           in: query
           required: false
-          description: The number of loans to be returned for this API call. Maximum is 10,000
+          description: The number of nps to be returned for this API call. Maximum is 10,000
           schema:
             type: integer
           example: 100
@@ -4497,7 +4256,7 @@ MAolJUVPRgo='
       tags:
         - Reporting
       description: Return a paginated list of documents data.
-      summary: List Documents Data
+      summary: Retrieve Document Metadata
       operationId: Get Documents Report
       parameters:
         - name: type
@@ -4560,6 +4319,427 @@ MAolJUVPRgo='
                     example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
         400:
           description: Invalid status value
+  /reporting/data-verification-usage:
+    get:
+      tags:
+        - Reporting
+      description: Returns a paginated list of connectivity metrics data.
+      summary: Retrieve Connectivity Metrics
+      operationId: Get Data Verification Usage Report
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Gets metrics for connectivity data on or after this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: endDate
+          in: query
+          required: false
+          description: Gets metrics for connectivity data on or before this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: limit
+          in: query
+          required: false
+          description: The number of rows of metrics to be returned for this API call. Maximum is 10,000
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of paginated data verification metrics, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  dataVerificationUsage:
+                    description: An array of connectivity metrics
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingDataVerificationUsageSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of connectivity metrics
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of connectivity metrics
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
+  /reporting/loan-pipeline:
+    get:
+      tags:
+        - Reporting
+      description: Returns a paginated list of loan pipeline data.
+      summary: Retrieve Loan Pipeline
+      operationId: Get Loan Pipeline Report
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Gets all loans created on or after this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: loanType
+          in: query
+          required: true
+          description: The type of loan application, e.g. ["HELOAN", "HELOC", "MORTGAGE", "CANADA_MORTGAGE", "ACCOUNT_OPENING", "AUTO", "ALL"]
+          schema:
+            type: string
+            enum: ["HELOAN", "HELOC", "MORTGAGE", "CANADA_MORTGAGE", "ACCOUNT_OPENING", "AUTO", "ALL"]
+          example: "AUTO"
+        - name: endDate
+          in: query
+          required: false
+          description: Gets all loans created on or before this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: limit
+          in: query
+          required: false
+          description: The number of loans to be returned for this API call. Maximum is 10,000
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of paginated loans, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  loanPipeline:
+                    description: An array of loans
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingLoanPipelineSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of loans
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of loans
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
+  /reporting/unassigned-loans:
+    get:
+      tags:
+        - Reporting
+      description: Returns a paginated list of unassigned loans data.
+      summary: Retrieve Unassigned Loans
+      operationId: Get Unassigned Loans Report
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Gets all unassigned loans created on or after this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: endDate
+          in: query
+          required: false
+          description: Gets all unassigned loans created on or before this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: limit
+          in: query
+          required: false
+          description: The number of unassigned loans to be returned for this API call. Maximum is 10,000
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of unassigned loans, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  unassignedLoans:
+                    description: An array of unassigned loans
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingUnassignedLoansSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of unassigned loans
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of unassigned loans
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
+  /reporting/loan-statistics:
+    get:
+      tags:
+        - Reporting
+      description: Returns a paginated list of loan statistic data.
+      summary: Retrieve Loan Statistics
+      operationId: Get Loan Statistics Report
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Get loan milestone metrics for loans created on or after this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: endDate
+          in: query
+          required: false
+          description: Get loan milestone metrics for loans created on or before this date
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+      responses:
+        200:
+          description: List of loan milestone metrics, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  loanStatistics:
+                    description: An array of loan milestone metrics
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingLoanStatisticsSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of loan milestone metrics
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of loan milestone metrics
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
+  /reporting/borrower-application-funnel:
+    get:
+      tags:
+        - Reporting
+      description: Return a paginated list of borrower application funnel data.
+      summary: Retrieve Borrower Application Funnel
+      operationId: Get Borrower Application Funnel Report
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Get borrower application funnel data generated on the week specified and the weeks after
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Get borrower application funnel data generated on the week specified and the weeks before
+          example: '2018-08-30T19:31:38.902Z'
+        - name: limit
+          in: query
+          required: false
+          description: The number of borrower application funnel data to be returned for this API call. Maximum is 10,000
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of conversion rates per respective Blend application process over the last 30 days from the date the data was generated, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  borrowerApplicationFunnel:
+                    description: An array of conversion rate data
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingBorrowerApplicationFunnelSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of conversion rate data
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of conversion rate data
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
+  /reporting/lender-batch-statistics:
+    get:
+      tags:
+        - Reporting
+      description: Return a paginated list of lender batch statistic data.
+      summary: Retrieve Lender Batch Statistics
+      operationId: Get Lender Batch Statistic Report
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Get lender statistic data generated on the week specified and the weeks after
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: endDate
+          in: query
+          required: false
+          description: Get lender statistic data generated on the week specified and the weeks before
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: limit
+          in: query
+          required: false
+          description: The number of lenders to be returned for this API call. Maximum is 10,000
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of paginated lender statistic data (e.g. conversion rate and number of exported loans), with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  lenderBatchStatistics:
+                    description: An array of lender statistic data
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingLenderBatchStatisticsSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of lenders
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of lenders
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
+  /reporting/follow-ups-usage:
+    get:
+      tags:
+        - Reporting
+      description: Return a paginated list of follow-ups usage data.
+      summary: Retrieve Follow Ups Metrics
+      operationId: Get Follow-ups Usage Report
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Get follow-ups usage data generated on the week specified and the weeks after
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: endDate
+          in: query
+          required: false
+          description: Get follow-ups usage data generated on the week specified and the weeks before
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: limit
+          in: query
+          required: false
+          description: The number of follow-ups usage data to be returned for this API call. Maximum is 10,000
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of paginated follow-ups, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  followUpsUsage:
+                    description: An array of follow-ups usage data
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingFollowUpsUsageSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of follow-ups
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of follow-ups
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid Request
   /events:
     get:
       parameters:
@@ -4570,6 +4750,13 @@ MAolJUVPRgo='
           schema:
             type: string
           example: default
+        - name: limit
+          in: query
+          required: false
+          description: The page size to return. Default and maximum are 250.
+          schema:
+            type: integer
+            example: 25
         - name: status
           in: query
           required: false
@@ -4844,12 +5031,16 @@ components:
     DocumentType:
       type: string
       description: Blend document type
-      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER']
+      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER', 'CLOSING_PACKAGE', 'PROMISSORY_NOTE', 'DEED_OF_TRUST', 'TITLE_DOCUMENT', 'CLOSING_SETTLEMENT_ONLY']
     ApplicationExperienceType:
       type: string
       description: ENUM describing the type of borrower experience for this application
       enum: ['FULL_APPLICATION', 'LENDER_ENTERED', 'POST_SUBMISSION']
       example: 'POST_SUBMISSION'
+    ArchivedStatusSchema:
+      type: boolean
+      description: True if the application has been archived
+      example: false
     EstimatedClosingDate:
       type: string
       format: date-time
@@ -4972,7 +5163,7 @@ components:
           description: UTC Timestamp of the Date of Birth
           example: '2018-10-03T20:07:27+00:00'
         homePhone:
-          type: integer
+          type: string
           description: Nine-digit home phone number
           example: '1112223333'
         currentAddress:
@@ -5464,6 +5655,8 @@ components:
           example: 95001.75
         applicationSource:
           $ref: '#/components/schemas/ApplicationSourceSchema'
+        archivedStatus:
+          $ref: '#/components/schemas/ArchivedStatusSchema'
     PropertySchema:
       type: object
       description: Object storing information about the property corresponding to a home lending application
@@ -6163,12 +6356,16 @@ components:
       properties:
         _id:
           type: string
-          description: Application ID
+          description: Internal application ID
           example: '3f345acb-6ac4-4bd0-b04a-dc0b9ad76e70'
         referenceId:
           type: string
-          description: Customer reference ID for application
+          description: Customer reference ID for application.
           example: '124123'
+        productReferenceId:
+          type: string
+          description: Customer reference ID for product bundle.
+          example: '324323'
         applicants:
           type: array
           description: List of applicants applying to open an account. Maximum of two.
@@ -6214,18 +6411,30 @@ components:
                   type: string
                   description: Family or household member's last name.
                   example: Smith
+            answers:
+              $ref: '#/components/schemas/AnswerSchema'
+        dynamicAccountOptions:
+          $ref: '#/components/schemas/AnswerSchema'
         debitCardIndicator:
           type: boolean
-          description: Indicates whether applicant is requesting a debit card
+          description: Indicates whether applicant is requesting a debit card.
           example: true
+        debitCardDesign:
+          type: string
+          description: Selected debit card design. Values configured per customer.
+          example: 'BLUE'
+        promoCode:
+          type: string
+          description: Promo code for the application.
+          example: '1110319'
         overdraftPrivilegeIndicator:
           type: boolean
           description: Indicates whether applicant is requesting overdraft privileges
           example: false
         approvalStatus:
           type: string
-          description: Status of the application approval process
-          enum: ['APPROVED', 'REFER']
+          description: Status of the application approval process.
+          enum: ['APPROVED', 'REFER', 'REJECTED']
           example: 'APPROVED'
     ApplicantSchema:
       type: object
@@ -6235,12 +6444,13 @@ components:
         - email
         - name
         - dateOfBirth
-        - phoneNumbers
+        - socialSecurityNumber
         - addresses
+        - phoneNumbers
       properties:
         _id:
           type: string
-          description: Applicant ID
+          description: Internal applicant ID
           example: '56632a12-1bd7-4014-8571-cff53c346738'
         type:
           type: string
@@ -6256,13 +6466,17 @@ components:
           $ref: '#/components/schemas/NameSchema'
         dateOfBirth:
           #### Britt TODO: Make AO a ticket to update for 3.0 or update these docs.
-          type: number
+          type: string
           description: Applicant birth date, UNIX timestamp (milliseconds)
-          example: 1537222722246
+          example: '1537222722246'
         socialSecurityNumber:
           type: string
           description: Applicant SSN
           example: '111224444'
+        creditConsentIndicator:
+          type: boolean
+          description: Indicates whether applicant consented to credit policy for Identity Verification purposes.
+          example: true
         addresses:
           description: List of applicant addresses, current or mailing
           type: array
@@ -6273,97 +6487,25 @@ components:
           description: List of phone numbers associated with applicant
           type: array
           items:
-            required:
-              - type
-              - value
-            properties:
-              type:
-                type: string
-                description: Type of phone number
-                enum: ['CELL', 'HOME', 'WORK']
-                example: 'CELL'
-              value:
-                type: number
-                description: Phone number
-                example: 5551112222
+            $ref: '#/components/schemas/AccountApplicationPhoneNumberSchema'
         identityVerificationStatus:
-          type: object
-          description: Information regarding id verification for applicant
-          required:
-            - _id
-          properties:
-            _id:
-              type: string
-              description: Internal ID of idVerification process
-              example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
-            statusType:
-              type: string
-              description: Result of identity verification process
-              enum: ['VERIFIED', 'REJECT', 'SERVICE_UNAVAILABLE']
-              example: 'VERIFIED'
-            code:
-              type: string
-              description: Reason code related to verification
-              enum: ['OFAC_MATCH']
-              example: 'OFAC_MATCH'
-            provider:
-              type: object
-              description: Provider metadata object
-              required:
-                - _id
-              properties:
-                _id:
-                  type: string
-                  description: Internal _id of the provider
-                  enum: ['CROSSCORE']
-                  example: 'CROSSCORE'
-                references:
-                  type: object
-                  description: References to external provider
-                  properties:
-                    clientReferenceId:
-                      type: string
-                      description: Unique Id passed to crosscore for referencing
-                    expRequestId:
-                      type: string
-                      description: Id returned from crosscore
+          $ref: '#/components/schemas/IdentityVerificationSchema'
         identityDocumentation:
-          type: object
-          description: ID Document
-          required:
-            - type
-            - value
-            - issueDate
-            - expiryDate
-          properties:
-            type:
-              type: string
-              description: Type of ID document provided by applicant
-              enum: ['DRIVERS_LICENSE', 'DRIVERS_PRIVILEGE_CARD', 'CANADIAN_DRIVERS_LICENSE', 'STATE_ID', 'CANADIAN_STATE_ID', 'US_PASSPORT', 'US_PASSPORT_CARD', 'FOREIGN_PASSPORT', 'MILITARY_ID', 'CONSULAR_ID', 'TRIBAL_ID']
-              example: 'US_PASSPORT'
-            value:
-              type: string
-              description: ID document number
-              example: 'S123000U'
-            stateCode:
-              type: string
-              description: 2-digit code of state that issued the ID document
-              example: 'CA'
-            issueDate:
-              #### Britt TODO: Make a ticket or update these docs
-              type: number
-              description: Date when ID document was issued, UNIX Timestamp (milliseconds)
-              example: 1529360743127
-            expiryDate:
-              #### Britt TODO: Make a ticket or update these docs
-              type: number
-              description: Date when ID document expires, UNIX Timestamp (milliseconds)
-              example: 1529360993127
+          $ref: '#/components/schemas/IdentityDocumentationSchema'
         employers:
           type: array
           description: List of applicant's employers
           items:
             $ref: '#/components/schemas/EmployerSchema'
+        employments:
+          type: array
+          description: List of applicant's employments
+          items:
+            $ref: '#/components/schemas/EmploymentSchema'
+        coreBankingId:
+          type: string
+          description: Unique identifier for customer's core banking system.
+          example: 'b258096c-c5f3-410f-ba56-08801f1a8752'
     AccountApplicationAddressSchema:
       type: object
       required:
@@ -6371,13 +6513,12 @@ components:
         - type
         - lineText
         - cityName
-        - countyName
         - stateCode
         - zipCode
       properties:
         _id:
           type: string
-          description: Address ID
+          description: Internal address ID
           example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
         type:
           type: string
@@ -6408,6 +6549,204 @@ components:
           type: string
           description: 5-digit zip code
           example: '10001'
+    AccountApplicationPhoneNumberSchema:
+      type: object
+      required:
+        - type
+        - value
+      properties:
+        type:
+          type: string
+          description: Type of phone number
+          enum: ['CELL', 'HOME', 'WORK']
+          example: 'CELL'
+        value:
+          type: number
+          description: Phone number
+          example: 5551112222
+    AuthorizedUserSchema:
+      type: object
+      required:
+        - _id
+        - email
+        - name
+        - dateOfBirth
+        - socialSecurityNumber
+        - phoneNumbers
+        - addresses
+      properties:
+        _id:
+          type: string
+          description: Internal authorized user ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        email:
+          type: string
+          description: Authorized User email address
+          example: 'jane.smith@company.com'
+        name:
+          description: Authorized User name
+          $ref: '#/components/schemas/NameSchema'
+        dateOfBirth:
+          type: string
+          description: Authorized User birth date, UNIX timestamp (milliseconds)
+          example: '1537222722246'
+        socialSecurityNumber:
+          type: string
+          description: Authorized User SSN
+          example: '111224444'
+        addresses:
+          description: List of authorized User addresses, current or mailing
+          type: array
+          items:
+            $ref:
+              '#/components/schemas/AccountApplicationAddressSchema'
+        phoneNumbers:
+          description: List of phone numbers associated with authorized User
+          type: array
+          items:
+            $ref:
+              '#/components/schemas/AccountApplicationPhoneNumberSchema'
+        identityVerification:
+          $ref: '#/components/schemas/IdentityVerificationSchema'
+    BeneficiarySchema:
+      type: object
+      required:
+        - _id
+        - type
+        - name
+        - dateOfBirth
+        - socialSecurityNumber
+        - phoneNumbers
+        - addresses
+      properties:
+        _id:
+          type: string
+          description: Internal beneficiary ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        type:
+          type: string
+          description: Beneficiary type, primary or contingent
+          enum: ['PRIMARY', 'CONTINGENT']
+          example: 'PRIMARY'
+        name:
+          description: Beneficiary name
+          $ref: '#/components/schemas/NameSchema'
+        relation:
+          type: string
+          description: Authorized User birth date, UNIX timestamp (milliseconds)
+          example: '1537222722246'
+        allocation:
+          type: number
+          description: Percentage allocated to the given beneficiary
+          example: 34.7
+        address:
+          $ref: '#/components/schemas/AccountApplicationAddressSchema'
+    IdentityDocumentationSchema:
+      type: object
+      description: ID Document
+      required:
+        - type
+        - value
+        - issueDate
+        - expiryDate
+      properties:
+        type:
+          type: string
+          description: Type of ID document provided by applicant
+          enum: ['DRIVERS_LICENSE', 'DRIVERS_PRIVILEGE_CARD', 'CANADIAN_DRIVERS_LICENSE', 'STATE_ID', 'CANADIAN_STATE_ID', 'US_PASSPORT', 'US_PASSPORT_CARD', 'FOREIGN_PASSPORT', 'MILITARY_ID', 'CONSULAR_ID', 'TRIBAL_ID']
+          example: 'US_PASSPORT'
+        value:
+          type: string
+          description: ID document number
+          example: 'S123000U'
+        stateCode:
+          type: string
+          description: 2-digit code of state that issued the ID document
+          example: 'CA'
+        country:
+          type: string
+          description: Country that issued the ID document
+          example: 'Taiwan'
+        province:
+          type: string
+          description: Province that issued the ID document
+          example: 'British Columbia'
+        tribe:
+          type: string
+          description: Tribe that issued the ID document
+          example: 'Spokane Tribe'
+        issueDate:
+          #### Britt TODO: Make a ticket or update these docs
+          type: number
+          description: Date when ID document was issued, UNIX Timestamp (milliseconds)
+          example: 1529360743127
+        expiryDate:
+          #### Britt TODO: Make a ticket or update these docs
+          type: number
+          description: Date when ID document expires, UNIX Timestamp (milliseconds)
+          example: 1529360993127
+    IdentityVerificationSchema:
+      type: object
+      description: Information regarding id verification for applicant
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal ID of idVerification process
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        statusType:
+          type: string
+          description: Result of identity verification process
+          enum: ['VERIFIED', 'REJECT', 'SERVICE_UNAVAILABLE']
+          example: 'VERIFIED'
+        provider:
+          type: object
+          description: Provider metadata object
+          required:
+            - _id
+          properties:
+            _id:
+              type: string
+              description: Internal _id of the provider
+              example: 'ALLOY'
+            references:
+              type: object
+              description: References to external provider
+              properties:
+                latestEvaluationURL:
+                  type: string
+                  description: URL for latest evaluation
+    FundingAccountSchema:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal account ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        referenceId:
+          type: string
+          description: External ID or code to reference this account. e.g. share code.
+          example: '0051'
+        type:
+          type: string
+          description: Account type
+          enum: ['CHECKING', 'SAVINGS', 'CERTIFICATE_OF_DEPOSIT', 'HSA']
+          example: 'CHECKING'
+        description:
+          type: string
+          description: Additional text describing account
+          example: 'Premium Checking Account'
+        accountNumber:
+          type: number
+          description: Account number
+          example: 33112244
+        routingNumber:
+          type: string
+          description: Routing number
+          example: '00227799'
     AccountSchema:
       type: object
       required:
@@ -6424,7 +6763,7 @@ components:
         type:
           type: string
           description: Account type
-          enum: ['CHECKING', 'SAVINGS']
+          enum: ['CHECKING', 'SAVINGS', 'CERTIFICATE_OF_DEPOSIT', 'HSA']
           example: 'CHECKING'
         description:
           type: string
@@ -6438,6 +6777,27 @@ components:
           type: string
           description: Routing number
           example: '00227799'
+        isPrimary:
+          type: boolean
+          description: Indicator for primary account on application
+          example: true
+        authorizedUsers:
+          type: array
+          description: Authorized Users collected for the given account.
+          items:
+            $ref: '#/components/schemas/AuthorizedUserSchema'
+        beneficiaries:
+          type: array
+          description: Beneficiaries collected for the given account.
+          items:
+            $ref: '#/components/schemas/BeneficiarySchema'
+    AnswerSchema:
+      type: object
+      required:
+        - answer
+      properties:
+        answer:
+          description: Value for a configured field.
     FundingSchema:
       type: object
       required:
@@ -6447,10 +6807,10 @@ components:
       properties:
         sourceAccount:
           description: Source account used to transfer funds
-          $ref: '#/components/schemas/AccountSchema'
+          $ref: '#/components/schemas/FundingAccountSchema'
         destinationAccount:
           description: Destination account for funds
-          $ref: '#/components/schemas/AccountSchema'
+          $ref: '#/components/schemas/FundingAccountSchema'
         amount:
           type: number
           description: Amount being transferred
@@ -6459,12 +6819,18 @@ components:
       type: object
       required:
         - _id
+        - type
         - name
       properties:
         _id:
           type: string
           description: Internal employer ID
           example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        type:
+          type: string
+          description: Type of employment.
+          enum: ['CURRENT', 'FORMER']
+          example: 'CURRENT'
         referenceId:
           type: string
           description: External employer reference ID. e.g. select employee group number.
@@ -6476,6 +6842,108 @@ components:
         address:
           description: Employer address
           $ref: '#/components/schemas/AccountApplicationAddressSchema'
+    EmploymentSchema:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Type of employment.
+          enum: ['CURRENT', 'FORMER']
+          example: 'CURRENT'
+        jobTitle:
+          type: string
+          description: Job Title
+          example: 'Account Executive'
+        annualIncome:
+          type: string
+          description: Annual income range for given employment
+          enum: ['BELOW_10K', 'BELOW_25K', 'BELOW_50K', 'BELOW_100K', 'BELOW_150K', 'BELOW_200K', 'ABOVE_200K']
+          example: 'BELOW_50K'
+        hireDate:
+          type: string
+          description: Date of hire for given employment
+          example: '2017-12-12T00:00:00.000Z'
+    PatchApplicationSchema:
+      type: object
+      properties:
+        referenceId:
+          type: string
+          description: Optional reference ID for matching records with Blend's application object
+          example: '200ABC123'
+        approvalStatus:
+          type: string
+          description: Decision regarding opening the account
+          enum: ['APPROVED', 'REFER', 'REJECTED']
+          example: 'APPROVED'
+        accounts:
+          type: array
+          description: List of accounts with their account/routing numbers
+          items:
+            $ref: '#/components/schemas/PatchAccountSchema'
+        applicants:
+          type: array
+          description: List of applicants with their member numbers
+          items:
+            $ref: '#/components/schemas/PatchApplicantSchema'
+        integrationEvent:
+          $ref: '#/components/schemas/IntegrationEventSchema'
+    PatchAccountSchema:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal account ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        accountNumber:
+          type: string
+          description: Account number of booked account
+          example: '33112244'
+        routingNumber:
+          type: string
+          description: Routing number of booked account
+          example: '00227799'
+    PatchApplicantSchema:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+          description: Internal applicant ID
+          example: '1239635c-6a0b-406a-85b2-e0e8e23c35db'
+        memberNumber:
+          type: string
+          description: Member number of applicant
+          example: '9083409234'
+    IntegrationEventSchema:
+      type: object
+      required:
+        - type
+        - status
+      properties:
+        type:
+          type: string
+          description: The type of integration event which is being completed
+          enum: ['applicationSubmitted', 'accountReadyToFund']
+          example: 'applicationSubmitted'
+        status:
+          type: string
+          description: The final status of the integration event which is being completed
+          enum: ['SUCCEEDED', 'FAILED_NON_RETRYABLE', 'FAILED_RETRYABLE']
+          example: 'SUCCEEDED'
+        failureCode:
+          type: string
+          description: Corresponding reason for integration event failure
+          enum: ['CORE_DOWN_FOR_MAINTENANCE', 'PARTIAL_CREATION', 'EXISTING_USER']
+          example: 'CORE_DOWN_FOR_MAINTENANCE'
+        failureMessage:
+          type: string
+          description: Message explaining why the integration event failed
+          example: 'User already exists in the core'
     DisclosuresPackageBorrowerMetadataSchema:
       type: object
       required:
@@ -6533,12 +7001,11 @@ components:
         - applicationId
       properties:
         applicationId:
-          type: string
-          description: The UUID associated with the application
+          $ref: '#/components/schemas/ApplicationId'
         status:
           type: string
           description: ENUM describing the status of this application's export to an external system
-          enum: ['IN_PROGRESS', 'DELETED', 'SUCCESS']
+          enum: ['IN_PROGRESS', 'FAILED', 'SUCCESS']
         reason:
           type: string
           description: Further explanation for the assigned status
@@ -6548,22 +7015,19 @@ components:
           format: date-time
           description: UTC Timestamp of last update to status
           example: '2018-08-30T19:31:38.902Z'
-    ExportStatusRecordSchema:
+    PostExportStatusSchema:
       type: object
-      allOf:
-        - $ref: '#/components/schemas/ExportStatusSchema'
-        - type: object
-          required:
-            - applicationId
-            - status
-          properties:
-            applicationId:
-              $ref: '#/components/schemas/ApplicationId'
-            lastUpdated:
-              type: string
-              format: date-time
-              description: UTC Timestamp of last update to status
-              example: '2018-08-30T19:31:38.902Z'
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: ENUM describing the status of this application's export to an external system
+          enum: ['IN_PROGRESS', 'FAILED', 'SUCCESS']
+        reason:
+          type: string
+          description: Further explanation for the assigned status
+          example: 'import failed on los'
     NotAuthorizedErrorSchema:
       type: object
       required:
@@ -6775,7 +7239,17 @@ components:
           format: date-time
           description: The timestamp when the loan was taken over by the LO (in UTC)
           example: '2018-07-31T00:00:00+00:00Z'
+        takeOverDatetime:
+          type: string
+          format: date-time
+          description: The timestamp when the loan was taken over by the LO (in UTC)
+          example: '2018-07-31T00:00:00+00:00Z'
         loanExportTimestamp:
+          type: string
+          format: date-time
+          description: The timestamp when the loan is exported
+          example: '2018-07-31T00:00:00+00:00Z'
+        loanExportDatetime:
           type: string
           format: date-time
           description: The timestamp when the loan is exported
@@ -6989,6 +7463,481 @@ components:
           type: integer
           description: NPS Score (0-10)
           example: 9
+    ReportingDataVerificationUsageSchema:
+      type: object
+      required:
+        - week
+        - numberGasGenerated
+        - numberLoansSubmitted
+        - numberLoansWithGas
+        - percentSubmitsWithGas
+        - numberTwnInstantAttempt
+        - numberTwnInstantSuccess
+        - asOfDate
+      properties:
+        week:
+          type: string
+          format: date-time
+          description: The start date of the week
+          example: '2019-09-23T00:00:00.000Z'
+        numberGasGenerated:
+          type: number
+          description: The number of Generated Asset Statements on the previous date
+          example: 23
+        numberLoansSubmitted:
+          type: number
+          description: The total number of submits on the previous date
+          example: 38
+        numberLoansWithGas:
+          type: number
+          description: The total number of submitted loans with a Generated Asset Statement on the previous date
+          example: 45
+        percentSubmitsWithGas:
+          type: number
+          description: The percent of submitted loans with a Generated Asset Statement on the previous date
+          example: 18.42
+        numberTwnInstantAttempt:
+          type: number
+          description: The total number of TWN instant attempts on the previous date
+          example: 1754
+        numberTwnInstantSuccess:
+          type: number
+          description: The total number of TWN instant successes on the previous date
+          example: 892
+        asOfDate:
+          type: string
+          format: date-time
+          description: The effective date of the report
+          example: '2019-10-29T04:25:30.000Z'
+        deployment:
+          type: string
+          description: The tenant making the API call
+          example: blend
+    ReportingLoanPipelineSchema:
+      type: object
+      required:
+        - loanId
+        - solutionType
+        - creationTime
+        - asOfDate
+      properties:
+        loanNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
+        loanId:
+          $ref: '#/components/schemas/ApplicationId'
+        losPrimaryKey:
+          $ref: '#/components/schemas/LosPrimaryKey'
+        assigneeName:
+          type: string
+          description: The first name of the primary assignee
+          example: 'Albert'
+        assigneeEmail:
+          type: string
+          description: The email address of the primary assignee
+          example: 'albert@email.com'
+        applicationSourceName:
+          type: string
+          description: The source through which the borrower received an application
+          example: 'Encompass'
+        marketingTag:
+          type: string
+          description: The marketing tag associated with the loan application
+          example: 'source00_medium00_campaign00_term00_content00'
+        assetState:
+          type: string
+          description: The registered address state on the asset
+          example: 'CA'
+        assetPurchasePrice:
+          type: number
+          description: The purchase price of the asset
+          example: 10000
+        loanApplicationStatus:
+          type: string
+          description: The current status of the loan application
+          example: 'SUBMITTED'
+        solutionType:
+          type: string
+          description: The type of the loan
+          example: 'MORTGAGE'
+        solutionSubType:
+          type: string
+          description: The subtype of the loan
+          example: 'REFINANCE'
+        creatorUserId:
+          type: string
+          description: The loan originator ID
+          example: '1b3f3189-7bef-469f-afbd-791ff805c674'
+        loanApplicationLastTouchDate:
+          type: string
+          format: date-time
+          description: The datetime that the loan was last touched by the user
+          example: '2019-04-25T10:11:51.000Z'
+        creationTime:
+          type: string
+          format: date-time
+          description: The timestamp the loan was created
+          example: '2019-10-29T04:25:30.000Z'
+        startTime:
+          type: string
+          format: date-time
+          description: The datetime that the loan was started at
+          example: '2019-10-29T04:25:30.000Z'
+        submitTime:
+          type: string
+          format: date-time
+          description: The submitted date of the loan application
+          example: '2019-10-29T04:25:30.000Z'
+        deletedAt:
+          type: string
+          format: date-time
+          description: The deleted date of the loan application
+          example: '2019-10-29T04:25:30.000Z'
+        purgedAt:
+          type: string
+          format: date-time
+          description: The purge date of the loan application
+          example: '2019-10-29T04:25:30.000Z'
+        archivedAt:
+          type: string
+          format: date-time
+          description: The archived date of the loan application
+          example: '2019-10-29T04:25:30.000Z'
+        exportedAt:
+          type: string
+          format: date-time
+          description: The exported date of the loan application
+          example: '2019-10-29T04:25:30.000Z'
+        firstCreditPull:
+          type: string
+          format: date-time
+          description: The date that the borrower’s credit is first pulled
+          example: '2019-10-29T04:25:30.000Z'
+        primaryBorrowerSsnFlag:
+          type: boolean
+          description: A flag denoting if the borrower has provided their SSN
+          example: true
+        primaryBorrowerCreditConsentDate:
+          type: string
+          format: date-time
+          description: The date that the borrower provided credit consent
+          example: '2019-10-29T04:25:30.000Z'
+        primaryBorrowerEconsentFlag:
+          type: boolean
+          description: A flag denoting that the borrower has provided e-consent
+          example: true
+        primaryAssigneeGuid:
+          type: string
+          description: The user ID of the primary assignee on the loan application
+          example: '1b3f3189-7bef-469f-afbd-791ff805c674'
+        lastActivityDatetime:
+          type: string
+          format: date-time
+          description: The date of the last activity on the loan
+          example: '2019-10-29T04:25:30.000Z'
+        lastTouchedByUser:
+          type: string
+          description: The user ID of the last lender to touch the loan application
+          example: '1b3f3189-7bef-469f-afbd-791ff805c674'
+        coborrowerSsnFlag:
+          type: boolean
+          description: A flag denoting if the coborrower has provided their SSN
+          example: true
+        coborrowerCreditConsentDate:
+          type: string
+          format: date-time
+          description: The date that the borrower provided credit consent
+          example: '2019-10-29T04:25:30.000Z'
+        coborrowerEconsentFlag:
+          type: boolean
+          description: A flag denoting that the co-borrower has provided e-consent
+          example: true
+        asOfDate:
+          type: string
+          format: date-time
+          description: The effective date of the report
+          example: '2019-10-29T04:25:30.000Z'
+    ReportingUnassignedLoansSchema:
+      type: object
+      required:
+        - loanId
+      properties:
+        submitDate:
+          type: string
+          format: date-time
+          description: The date the loan was submitted
+          example: '2019-10-29T04:25:30.000Z'
+        signupUrl:
+          type: string
+          description: The sign-up URL the borrower used to apply
+          example: 'sign-up-url.com'
+        loanId:
+          $ref: '#/components/schemas/ApplicationId'
+        currentAssigneeName:
+          type: string
+          description: The current assignee of the loan
+          example: 'Albert'
+        currentAssigneeEmail:
+          type: string
+          description: The current assignee's email address
+          example: albert@email.com
+    ReportingLoanStatisticsSchema:
+      type: object
+      required:
+        - loanId
+        - creationTime
+        - followUpOnlyFlag
+        - connectivityFlag
+        - twnSuccessFlag
+        - asOfDate
+      properties:
+        loanNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
+        loanId:
+          $ref: '#/components/schemas/ApplicationId'
+        creationTime:
+          type: string
+          format: date-time
+          description: The timestamp the loan was created
+          example: '2019-10-29T04:25:30.000Z'
+        losPrimaryKey:
+          $ref: '#/components/schemas/LosPrimaryKey'
+        solutionSubType:
+          type: string
+          description: The purpose of the loan application
+          example: 'PURCHASE'
+        applicationSource:
+          $ref: '#/components/schemas/ApplicationSourceSchema'
+        applicationProgram:
+          type: string
+          description: The loan program of the application, possible values include - STATE_AGENCY, VA, FHA, CONVENTIONAL, LOCAL_AGENCY, USARURAL_DEVELOPMENT, PUBLIC_AND_INDIAN_HOUSING, OTHER
+          example: 'CONVENTIONAL'
+        applicationSourceChannel:
+          type: string
+          description: The source of the loan application, possible values include - SELF_SERVE, INVITED
+          example: 'INVITED'
+        marketingTag:
+          type: string
+          description: The unique marketing identifier on the loan to help users track their top of funnel campaigns
+          example: 'source00_medium00_campaign00_term00_content00'
+        currentProcess:
+          type: string
+          description: The current Blend application milestone the borrower is on
+          example: 'Getting Started_0'
+        loanStatus:
+          type: string
+          description: The current status of the loan application
+          example: 'SUBMITTED'
+        startToSubmitTime:
+          type: number
+          description: The time between when the loan application was started and when it was submitted in Blend
+          example: 123
+        inviteToActivationTime:
+          type: number
+          description: The time between when the borrower was invited and when they were activated in Blend
+          example: 321
+        averageFollowupCompletionTime:
+          type: number
+          description: The average time the borrower(s) took to complete all requisite Follow-ups for the particular application
+          example: 2233
+        submitToExportTime:
+          type: number
+          description: The time between when the loan application was submitted in Blend and when it was exported to the LOS
+          example: 23
+        percentManualDocumentUpload:
+          type: number
+          description: The percent of documents on the loan that were manually uploaded
+          example: 0.24
+        percentAutomaticDocumentUpload:
+          type: number
+          description: The percent of documents that were automatically uploaded
+          example: 0.76
+        lenderTakeOverDate:
+          type: string
+          format: date-time
+          description: The timestamp when the loan application was taken over
+          example: '2019-10-29T04:25:30.000Z'
+        deletedDate:
+          type: string
+          format: date-time
+          description: The timestamp when the loan application was deleted
+          example: '2019-10-29T04:25:30.000Z'
+        archivedDate:
+          type: string
+          format: date-time
+          description: The timestamp when the loan was deleted in Blend
+          example: '2019-10-29T04:25:30.000Z'
+        lastTouchDate:
+          type: string
+          format: date-time
+          description: The timestamp of when the loan was archived in Blend
+          example: '2019-10-29T04:25:30.000Z'
+        followUpOnlyFlag:
+          type: boolean
+          description: A flag that indicates that the application was a follow-up only loan, the lender used Blend to issue follow ups to the borrower
+          example: true
+        connectivityFlag:
+          type: boolean
+          description: A flag that indicates that the borrower successfully generated an asset statement
+          example: true
+        twnSuccessFlag:
+          type: boolean
+          description: A flag that indicates that a successful match was found on the borrower using The Work Number
+          example: true
+        asOfDate:
+          type: string
+          format: date-time
+          description: The date that the report was generated
+          example: '2019-10-29T04:25:30.000Z'
+    ReportingBorrowerApplicationFunnelSchema:
+      type: object
+      required:
+        - process
+        - numProcessesCompleted
+        - totalLoanCount
+        - asOfDate
+        - deployment
+      properties:
+        process:
+          type: string
+          description: The process in Blend's borrower application
+          example: 'Income_0'
+        numProcessesCompleted:
+          type: number
+          description: The number of distinct loans who have completed this process in the last 30 days
+          example: 23
+        totalLoanCount:
+          type: number
+          description: The total number of loan applications which have been started in Blend in the last 30 days
+          example: 230
+        conversion:
+          type: number
+          description: The percentage of loans which have completed this process in Blend in the last 30 days
+          example: 0.35
+        asOfdate:
+          type: string
+          format: date-time
+          description: The date that the report was generated
+          example: '2019-10-29T04:25:30.000Z'
+    ReportingLenderBatchStatisticsSchema:
+      type: object
+      required:
+        - lenderUserId
+      properties:
+        lenderUserId:
+          type: string
+          description: The unique identifier in Blend of the lender
+          example: 'd659cce9-c35b-4b75-86aa-a057af6a9f47'
+        name:
+          type: string
+          description: The full name of the lender user
+          example: 'Joe Johnson'
+        email:
+          type: string
+          description: The lender user's email
+          example: 'jj@blend.com'
+        nmlsId:
+          type: string
+          description: The lender user's NMLS ID
+          example: '7932'
+        employeeId:
+          type: string
+          description: The lender user's employee ID
+          example: '2397'
+        losUsername:
+          type: string
+          description: The lender user's LOS Username in Blend
+          example: joejohnson
+        branchId:
+          type: string
+          description: The lender user's associated Branch ID
+          example: 'San Francisco'
+        userRoles:
+          type: string
+          description: A comma-separated list of roles that the lender user holds
+          example: 'Loan Officer'
+        percentLoansSubmitted:
+          type: number
+          description: The total number of loans submitted as a percentage of the total number of created applications assigned to the lender user in the last 90 days
+          example: 0.15
+        totalCreatedApplications:
+          type: number
+          description: The total number of created application applications assigned to the lender user in the last 90 days
+          example: 23
+        averageNpsScore:
+          type: number
+          description: The average NPS score of all submitted applications assigned to the lender user in the last 90 days
+          example: 9.5
+        followupsIssuedLender:
+          type: number
+          description: The number of Follow-ups issued by the lender user in the last 90 days
+          example: 34
+        percentLoansUtilizingFollowups:
+          type: number
+          description: The percent of the lender user's loans utilizing Follow-ups in the last 90 days
+          example: 0.2
+        lastLoginTimestamp:
+          type: string
+          format: date-time
+          description: The timestamp of the last login by the lender user
+          example: '2019-10-29T04:25:30.000Z'
+        lastSubmitTimestamp:
+          type: string
+          format: date-time
+          description: The timetamp of the last login by the lender user
+          example: '2019-10-29T04:25:30.000Z'
+        asOfDate:
+          type: string
+          format: date-time
+          description: The date that the report was generated
+          example: '2019-10-29T04:25:30.000Z'
+    ReportingFollowUpsUsageSchema:
+      type: object
+      required:
+        - lenderUserId
+        - numberManuallyRequested
+        - numberBorrowerCompleted
+        - numberPending
+        - numberAccepted
+        - numberRejected
+        - asOfDate
+      properties:
+        lenderUserId:
+          type: string
+          description: The unique identifier for the lender user
+          example: 'fa81f650-d30e-4bc7-8dae-64aceb3c08da'
+        name:
+          type: string
+          description: The name of the lender user
+          example: 'Chris Walker'
+        email:
+          type: string
+          description: The email address of the lender user
+          example: 'chris.walker@blend.com'
+        numberManuallyRequested:
+          type: number
+          description: The number of manually requested Follow-ups by the lender user on the previous date
+          example: 5
+        numberBorrowerCompleted:
+          type: number
+          description: The number of Follow-ups completed by the borrower of the loan on the previous date
+          example: 3
+        numberPending:
+          type: number
+          description: The total number of pending Follow-ups as of the previous date
+          example: 2
+        numberAccepted:
+          type: number
+          description: The total number of accepted Follow-ups as of the previous date
+          example: 4
+        numberRejected:
+          type: number
+          description: The total number of rejected Follow-ups as of the previous date
+          example: 1
+        asOfDate:
+          type: string
+          format: date-time
+          description: The date that the report was generated
+          example: '2019-10-29T04:25:30.000Z'
     EventSchema:
       type: object
       required:
@@ -7688,6 +8637,10 @@ components:
             properties:
               id:
                 type: string
+        title:
+          type: string
+          description: Review documents follow-up display title.
+          example: 'Review custom document'
     DocumentFollowUpSubContext:
       type: array
       description: Documents uploaded by the borrower to complete this follow-up
