@@ -2,14 +2,14 @@ openapi: "3.0.0"
 
 x-headers:
   - key: blend-api-version
-    value: 4.0.0
+    value: 4.2.0
   - key: cache-control
     value: no-cache
   - key: Content-Type
     value: application/json
 
 info:
-  version: 4.0.0
+  version: 4.2.0
   title: Blend API
 
 servers:
@@ -61,6 +61,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
         - in: query
           name: format
           required: true
@@ -111,6 +112,147 @@ paths:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
   /home-lending/applications:
+    post:
+      operationId: Post Home Lending Application
+      summary: Post a Home Lending Application
+      description: Create a new application in Blend with minimal borrower and application data. This endpoint is usually used to create applications in Blend from CRMs or other central borrower databases.
+      tags:
+        - Home Lending - Applications
+      requestBody:
+        description: Application Creation Body
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationRequestSchema'
+            example:
+              solutionSubType: 'MORTGAGE'
+              applicationExperienceType: 'FULL_APPLICATION'
+              loanPurposeType: 'PURCHASE'
+              property:
+                type: 'SINGLE_FAMILY'
+                searchType: 'NOT_STARTED'
+                usageType: 'PRIMARY_RESIDENCE'
+                value: 120000
+                address:
+                  streetAddressLine1: '101 main st'
+                  streetAddressLine2: '132'
+                  city: 'Chicago'
+                  state: 'IL'
+                  zipCode: '70007'
+                  zipCodePlusFour: '1000'
+                  countyName: 'Cook County'
+              loanAmount: 100000
+              communityId: '12345'
+              leadId: 'lead1'
+              crmId: 'crm1'
+              losId: 'los1'
+              referenceNumber: '12000'
+              applicationSource:
+                type: 'LOS'
+                name: 'LOS'
+              sendEmailInvite: true
+              interestRate: 4.25
+              mortgageType: 'CONVENTIONAL'
+              party:
+                name:
+                  firstName: Tanya
+                  middleName: M
+                  lastName: Williams
+                  suffixName: III
+                email: 'twilliams@email.com'
+                dateOfBirth: '2000-10-03T20:07:27+00:00'
+                taxpayerIdentifier:
+                  value: '000113933'
+                  type: 'SOCIAL_SECURITY_NUMBER'
+                homePhone: '11122223333'
+                currentAddress:
+                  streetAddressLine1: '100 main st'
+                  streetAddressLine2: '132'
+                  city: 'Chicago'
+                  state: 'IL'
+                  zipCode: '70007'
+                  zipCodePlusFour: '1000'
+                  customFields:
+                    fieldName: 'fldValue'
+      responses:
+        200:
+          description: New Application
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  id:
+                    $ref: '#/components/schemas/ApplicationId'
+                  solutionSubType:
+                    type: string
+                    example: 'MORTGAGE'
+                  parties:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          description: UUID of the party
+                          type: string
+                          example: '18c3e52a-c7e7-4c6d-a36f-d5bca568613a'
+                        name:
+                          description: Object representation of the party's name
+                          $ref: '#/components/schemas/NameSchema'
+                        type:
+                          description: ENUM describing whether this party is the primary borrower or a coborrower
+                          type: string
+                          enum: ['BORROWER', 'COBORROWER']
+                  redirectUrl:
+                    type: string
+                    description: redirected URL that allows consumers to be automatically redirected to the application that was just created for them
+                    example: 'apply.lender.com/signup?=abc123&activationKey=321abc'
+                  customFields:
+                    $ref: '#/components/schemas/CustomFieldsObject'
+                    example: {}
+              example:
+                id: 'aa9fdaa2-7bf3-4411-a836-c2a46117f5c3'
+                solutionSubType: 'MORTGAGE'
+                parties:
+                - id: '18c3e52a-c7e7-4c6d-a36f-d5bca568613a'
+                  name:
+                    firstName: 'Tanya'
+                    middleName: 'M'
+                    lastName: 'Williams'
+                    suffixName: 'III'
+                  type: 'BORROWER'
+                customFields: {}
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        422:
+          description: Invalid Update
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidUpdateErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
     get:
       operationId: Get Home Lending Applications
       summary: Get Applications
@@ -185,7 +327,7 @@ paths:
             $ref: '#/components/schemas/HomeLendingSolutionSubType'
       responses:
         200:
-          description: List of paginated applications, with cursors to go the next or previous pages.
+          description: List of paginated applications, with cursors to go the next or previous pages.s
           content:
             application/json; charset=utf-8:
               schema:
@@ -203,129 +345,6 @@ paths:
                     description: Cursor to use to get to the previous set of applications
                     type: string
                     example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
-        400:
-          description: Invalid Request
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestErrorSchema'
-        401:
-          description: Invalid Credentials
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
-        403:
-          description: Not Authorized
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
-        422:
-          description: Invalid Update
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InvalidUpdateErrorSchema'
-        500:
-          description: Unexpected Error
-          content:
-            application/json; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/InternalServerErrorSchema'
-    post:
-      operationId: Post Home Lending Application
-      summary: Post a Home Lending Application
-      description: Create a new application in Blend with minimal borrower and application data. This endpoint is usually used to create applications in Blend from CRMs or other central borrower databases.
-      tags:
-        - Home Lending - Applications
-      requestBody:
-        description: Application Creation Body
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApplicationRequestSchema'
-            example:
-              solutionSubType: 'MORTGAGE'
-              applicationExperienceType: 'FULL_APPLICATION'
-              loanPurposeType: 'PURCHASE'
-              property:
-                type: 'SINGLE_FAMILY'
-                searchType: 'NOT_STARTED'
-                usageType: 'PRIMARY_RESIDENCE'
-                value: 120000
-                address:
-                  streetAddressLine1: '101 main st'
-                  streetAddressLine2: '132'
-                  city: 'Chicago'
-                  state: 'IL'
-                  zipCode: '70007'
-                  zipCodePlusFour: '1000'
-                  countyName: 'Tippecanoe'
-              loanAmount: 100000
-              purchasePrice: 120000
-              communityId: '12345'
-              leadId: 'lead1'
-              crmId: 'crm1'
-              losId: 'los1'
-              referenceNumber: '12000'
-              applicationSource:
-                type: 'LOS'
-                name: 'LOS'
-              sendEmailInvite: true
-              interestRate: 4.25
-              mortgageType: 'CONVENTIONAL'
-              party:
-                name:
-                  firstName: John
-                  lastName: Hernandez
-                email: 'john@email.com'
-                dateOfBirth: '2000-10-03T20:07:27+00:00'
-                taxpayerIdentifier:
-                  value: '000113933'
-                  type: 'SOCIAL_SECURITY_NUMBER'
-                homePhone: '11122223333'
-                currentAddress:
-                  streetAddressLine1: '100 main st'
-                  streetAddressLine2: '132'
-                  city: 'Chicago'
-                  state: 'IL'
-                  zipCode: '70007'
-                  zipCodePlusFour: '1000'
-      responses:
-        200:
-          description: New Application
-          content:
-            application/json; charset=utf-8:
-              schema:
-                type: object
-                properties:
-                  id:
-                    $ref: '#/components/schemas/ApplicationId'
-                  solutionSubType:
-                    type: string
-                    example: 'MORTGAGE'
-                  parties:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          description: UUID of the party
-                          type: string
-                          example: '18c3e52a-c7e7-4c6d-a36f-d5bca568613a'
-                        name:
-                          description: Object representation of the party's name
-                          $ref: '#/components/schemas/NameSchema'
-                        type:
-                          description: ENUM describing whether this party is the primary borrower or a coborrower
-                          type: string
-                          enum: ['BORROWER', 'COBORROWER']
-                  redirectUrl:
-                    type: string
-                    description: redirected URL that allows consumers to be automatically redirected to the application that was just created for them
-                    example: 'apply.lender.com/signup?=abc123&activationKey=321abc'
         400:
           description: Invalid Request
           content:
@@ -496,6 +515,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       operationId: Post Export Status
       summary: Post Export Status
       description: Update export status on an application
@@ -554,11 +574,12 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       responses:
         200:
           description: Data Exported Successfully
           content:
-            text/plain; charset=utf-8:
+            application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/ApplicationSchema'
                 discriminator:
@@ -599,6 +620,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       responses:
         200:
           description: Application Deleted Successfully
@@ -644,6 +666,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       requestBody:
         description: Application Update Body
         content:
@@ -696,6 +719,12 @@ paths:
                   type: string
                   description: ENUM describing the type of the mortgage
                   enum: ['CONVENTIONAL', 'FHA', 'LOCAL_AGENCY', 'OTHER', 'PUBLIC_AND_INDIAN_HOUSING', 'STATE_AGENCY', 'USDARURAL_DEVELOPMENT', 'VA']
+                appSource:
+                  type: string
+                  description: ID corresponding to a unique marketing campaign
+                  example: 'ORGANIC_LEAD'
+                customFields:
+                  $ref: '#/components/schemas/CustomFields'
             example:
               losId: losId1
               crmId: crmId1
@@ -712,7 +741,10 @@ paths:
               communityId: '12345'
               interestRate: 4.25
               mortgageType: 'CONVENTIONAL'
+              appSource: 'ORGANIC_LEAD'
               realEstateAgentNotificationConsentGiven: true
+              customFields:
+                fieldName: 'fldValue'
       responses:
         200:
           description: Application Updated Successfully
@@ -754,6 +786,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
         - in: query
           name: includeAllDocuments
           description: If true, returns a list of all the documents on the application, including signature pending documents.
@@ -772,6 +805,19 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/DocumentSchema'
+              example:
+                documents:
+                - id: 89968249-7cb8-42e3-b847-85bae7027281
+                  losLoanId: losId1
+                  type: COMPLIANCE_REPORT
+                  name: Williams - Compliance Report - 011421 81718pm
+                  downloadUrl: https://blend-borrower-staging.sandbox.centrio.com/v1/documents/89968249-7cb8-42e3-b847-85bae7027281
+                  created: '2021-01-14T20:17:20.127Z'
+                  customFields: {}
+                  lastExportedAt:
+                  applicationId: 70e7df4a-29d8-4f0d-90cd-f4604e45e0b5
+                  partyIds:
+                  - cc730ed3-0d46-493d-bd85-8cddc60e45d1
         401:
           description: Invalid Credentials
           content:
@@ -803,6 +849,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       responses:
         200:
           description: List of Parties
@@ -815,6 +862,52 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/PartySchema'
+              example:
+                parties:
+                - id: cc730ed3-0d46-493d-bd85-8cddc60e45d1
+                  applicationId: 70e7df4a-29d8-4f0d-90cd-f4604e45e0b5
+                  email: twilliams@email.com
+                  type: BORROWER
+                  name:
+                    firstName: Tanya
+                    middleName: M
+                    lastName: Williams
+                    suffixName: III
+                  status: INVITED
+                  econsent:
+                    status: Pending
+                  phoneNumbers:
+                  - phoneNumber: '11122223333'
+                    type: HOME
+                  addresses:
+                  - type: CURRENT
+                    address:
+                      streetAddressLine1: 100 main st
+                      streetAddressLine2: '132'
+                      city: Chicago
+                      state: IL
+                      zipCode: '70007'
+                      zipCodePlusFour: '1000'
+                  relationship: {}
+                  loginMethod: EMAIL
+                  dateOfBirth: '2000-10-03T20:07:27.000Z'
+                  taxpayerIdentifier:
+                    type: SOCIAL_SECURITY_NUMBER
+                    value: '000113933'
+                - id: 7ee059cc-1815-4c6b-92d8-a650579102a6
+                  applicationId: 70e7df4a-29d8-4f0d-90cd-f4604e45e0b5
+                  losPartyId: losParty2
+                  email: james@email.com
+                  type: SPOUSE
+                  name:
+                    firstName: James
+                    middleName: William
+                    lastName: Horton
+                    suffixName: 3rd
+                  econsent:
+                    status: Pending
+                  phoneNumbers: []
+                  relationship: {}
         400:
           description: Invalid Request
           content:
@@ -905,6 +998,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       responses:
         200:
           description: Application Borrower Positions
@@ -953,6 +1047,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       requestBody:
         description: New Borrower Pair
         content:
@@ -1002,6 +1097,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       responses:
         200:
           description: Current LOS Milestone
@@ -1058,6 +1154,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: 9250f84b-c2a1-4cab-b265-bd720685c361
       requestBody:
         required: true
         content:
@@ -1381,6 +1478,86 @@ paths:
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
+  /home-lending/applications/employers/verified:
+    get:
+      parameters:
+        - name: applicationId
+          in: query
+          required: true
+          description: The application to retrieve verified employers for.
+          schema:
+            $ref: '#/components/schemas/ApplicationId'
+          example: aa9fdaa2-7bf3-4411-a836-c2a46117f5c3
+      operationId: Get verified employers
+      summary: Get verified employers from an Application
+      description: Gets a summary of verified employers data for an Application
+      tags:
+        - Home Lending - Applications
+      responses:
+        200:
+          description: Verified EmployersSummary for Application was successfully retrieved
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/VerifiedEmployersSchema'
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        404:
+          description: Application Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ApplicationNotFoundErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /home-lending/applications/employers/reverify:
+    post:
+      operationId: Post Employers Reverify
+      summary: Initiate Reverification of Employers
+      description: Initiates an asynchronous attempt to reverify employers for the specified application and employers.
+      tags:
+        - Home Lending - Applications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployersReverifyRequestSchema'
+      responses:
+        200:
+          description: An attempt to reverify employers for a partyId on the application has been initiated.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Application Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ApplicationNotFoundErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
   /documents:
     get:
       operationId: Get Documents
@@ -1447,6 +1624,22 @@ paths:
                   nextCursor:
                     type: string
                     description: Cursor to use to get to the next set of documents
+              example:
+                documents:
+                - id: 89968249-7cb8-42e3-b847-85bae7027281
+                  losLoanId: losId1
+                  type: COMPLIANCE_REPORT
+                  name: Williams - Compliance Report - 011421 81718pm
+                  downloadUrl: https://blend-borrower-staging.sandbox.centrio.com/v1/documents/89968249-7cb8-42e3-b847-85bae7027281
+                  created: '2021-01-14T20:17:20.127Z'
+                  customFields: {}
+                  lastExportedAt:
+                  applicationId: 70e7df4a-29d8-4f0d-90cd-f4604e45e0b5
+                  partyIds:
+                  - cc730ed3-0d46-493d-bd85-8cddc60e45d1
+                prevCursor: 'biwxNjEwNTcxMDQyMDAwLGM5ZGM2ZDg0LTg4ZjktNGI0Ny04ODhiLWIwZGQyMmQ4NzRiNQ'
+                nextCursor: 'cCwxNjEwNTcxMDQyMDAwLGM5ZGM2ZDg0LTg4ZjktNGI0Ny04ODhiLWIwZGQyMmQ4NzRiNQ'
+
         400:
           description: Invalid Request
           content:
@@ -2978,6 +3171,7 @@ MAolJUVPRgo='
           description: The documentId of the 4506T form
           schema:
             $ref: '#/components/schemas/DocumentId'
+          example: '300c9f4c-c90b-40a4-94d4-f2a718b9be61'
       operationId: Get Tax Transcripts
       summary: Gets Tax Transcripts structured data for a particular 4506T document
       description: Gets Tax Transcripts structured data for a particular 4506T document
@@ -3031,7 +3225,7 @@ MAolJUVPRgo='
               schema:
                 type: object
                 properties:
-                  _id:
+                  id:
                     type: string
                     example: '1530f84b-c2a1-4cab-b225-vd720687d243'
         400:
@@ -3083,9 +3277,12 @@ MAolJUVPRgo='
           content:
             application/json; charset=utf-8:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PackageResponseSchema'
+                type: object
+                properties:
+                  packages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PackageResponseSchema'
         400:
           description: Bad Request
           content:
@@ -3613,8 +3810,8 @@ MAolJUVPRgo='
                     $ref: '#/components/schemas/LenderCreationRequestSchema'
             example:
               lenders:
-                - name: 'Joe Lender'
-                  email: 'joe.lender@blend.com'
+                - name: 'Ashley Lender'
+                  email: 'ashley.lender@blend.com'
                   permittedSolutionSubTypes: ['MORTGAGE']
                   requireTwoFactorAuth: false
                   loginMethod: 'email'
@@ -3623,14 +3820,14 @@ MAolJUVPRgo='
                     number: '1112223333'
                     extension: '1234'
                   nmlsId: '39179'
-                  losUsername: 'joelender'
+                  losUsername: 'ashleylender'
                   employeeId: '12314'
                   branchId: 'west branch'
                   creditInternalAccountIdentifiers:
-                    pullType: 'Hard'
-                    creditPullScenario: 'MORTGAGE'
-                    creditProvider: 'INFORMATIVE_RESEARCH'
-                    creditAccountIdentifier: 'test'
+                    - pullType: 'Hard'
+                      creditPullScenario: 'MORTGAGE'
+                      creditProvider: 'INFORMATIVE_RESEARCH'
+                      creditAccountIdentifier: 'test'
       responses:
         200:
           description: All Lender Users Successfully Created
@@ -3787,7 +3984,7 @@ MAolJUVPRgo='
     patch:
       operationId: Patch Lenders
       summary: Update Lenders in Blend
-      description: Bulk endpoint to update some information on an array of lender users. This API does not support deleting existing credit internal account identifiers, existing identifiers can be updated & new entries can be created.
+      description: Bulk endpoint to update some information on an array of lender users
       tags:
         - Lenders
       requestBody:
@@ -3805,8 +4002,8 @@ MAolJUVPRgo='
             example:
               lenders:
                 - id: '9250f84b-c2a1-4cab-b265-bd720685c361'
-                  name: 'Joe Lender'
-                  email: 'joe.lender@blend.com'
+                  name: 'Ashley Lender'
+                  email: 'ashley.lender@blend.com'
                   permittedSolutionSubTypes: ['MORTGAGE']
                   requireTwoFactorAuth: false
                   loginMethod: 'email'
@@ -3815,7 +4012,7 @@ MAolJUVPRgo='
                     number: '1112223333'
                     extension: '1234'
                   nmlsId: '39179'
-                  losUsername: 'joelender'
+                  losUsername: 'ashleylender'
                   employeeId: '12314'
                   branchId: 'west branch'
                   creditInternalAccountIdentifiers:
@@ -4039,7 +4236,7 @@ MAolJUVPRgo='
                 type:
                   type: string
                   description: ENUM describing the type of party
-                  enum: ['OTHER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'COBORROWER']
+                  enum: ['OTHER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'COBORROWER', 'NON_APPLICANT_USER']
                   example: 'SPOUSE'
                 verificationData:
                   $ref: '#/components/schemas/VerificationDataSchema'
@@ -4060,18 +4257,30 @@ MAolJUVPRgo='
                   $ref: '#/components/schemas/PostEconsentSchema'
                 losPartyId:
                   $ref: '#/components/schemas/LOSPartyIdSchema'
-                relationship:
-                  $ref: '#/components/schemas/RelationshipSchema'
+                maritalStatus:
+                  type: string
+                  description: ENUM describing the marital status of Party
+                  enum: ['MARRIED', 'NOT_PROVIDED', 'SEPARATED', 'UNKNOWN', 'UNMARRIED']
+                  example: 'MARRIED'
+                customFields:
+                  $ref: '#/components/schemas/CustomFields'
             example:
               applicationId: 4ab61cfd-e4f0-47af-bdfa-06901e2bf180
               name:
                 firstName: John
+                middleName: Angel
                 lastName: Hernandez
+                suffixName: Jr.
               email: john@email.com
               type: 'SPOUSE'
               verificationData:
                 code: '1234'
                 hint: Verification hint
+              losPartyId: externalId1
+              econsent:
+                status: 'Declined'
+              customFields:
+                fieldName: 'fldValue'
       responses:
         200:
           description: Created Party
@@ -4079,6 +4288,17 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/PartyResponseSchema'
+              example:
+                id: bca86e3e-ce8b-4e04-b841-bf7e31f91eb3
+                applicationId: a5ded618-3a1d-44d3-ba34-9df57eb72c26
+                name:
+                  firstName: John
+                  middleName: Angel
+                  lastName: Hernandez
+                  suffixName: Jr.
+                email: john@email.com
+                type: 'SPOUSE'
+                losPartyId: externalId1
         400:
           description: Invalid Request
           content:
@@ -4140,7 +4360,7 @@ MAolJUVPRgo='
                 type:
                   type: string
                   description: ENUM describing the type of Party
-                  enum: ['OTHER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'COBORROWER']
+                  enum: ['OTHER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'COBORROWER', 'NON_APPLICANT_USER']
                   example: 'SPOUSE'
                 verificationData:
                   $ref: '#/components/schemas/VerificationDataSchema'
@@ -4161,17 +4381,31 @@ MAolJUVPRgo='
                   $ref: '#/components/schemas/PostEconsentSchema'
                 losPartyId:
                   $ref: '#/components/schemas/LOSPartyIdSchema'
-                relationship:
-                  $ref: '#/components/schemas/RelationshipSchema'
+                maritalStatus:
+                  type: string
+                  description: ENUM describing the marital status of Party
+                  enum: ['MARRIED', 'NOT_PROVIDED', 'SEPARATED', 'UNKNOWN', 'UNMARRIED']
+                  example: 'MARRIED'
+                customFields:
+                  type: string
+                  description: field name of the custom field
             example:
               name:
-                firstName: John
-                lastName: Hernandez
-              email: john@email.com
-              type: 'SPOUSE'
+                firstName: James
+                middleName: William
+                lastName: Horton
+                suffixName: 3rd
+              email: james@email.com
               verificationData:
-                code: '1234'
-                hint: Verification hint
+                code: '4321'
+                hint: Different verification hint
+              losPartyId: losParty2
+              econsent:
+                status: 'Accepted'
+                ip: '0.0.0.0'
+                date: '2018-08-30T19:31:38.902Z'
+              customFields:
+                fieldName: 'fldValue'
       responses:
         200:
           description: Updated Party
@@ -5392,6 +5626,7 @@ MAolJUVPRgo='
           description: The profile can be configured per customer. This supports use cases like multiple tenants, or multiple instances of the same tenant. Unless otherwise requested, this value will be "default".
           schema:
             type: string
+          example: default
         - in: path
           name: id
           required: true
@@ -5550,6 +5785,7 @@ MAolJUVPRgo='
           description: The application to retrieve an Assets summary for.
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: aa9fdaa2-7bf3-4411-a836-c2a46117f5c3
       operationId: Get Assets
       summary: Get Assets from an Application
       description: Gets a summary of Assets data for an Application
@@ -5640,6 +5876,7 @@ MAolJUVPRgo='
           description: Application ID
           schema:
             $ref: '#/components/schemas/ApplicationId'
+          example: aa9fdaa2-7bf3-4411-a836-c2a46117f5c3
       responses:
         200:
           description: Success
@@ -6252,6 +6489,60 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
+  /close/closings/{id}/external-enote:
+    post:
+      operationId: Post External ENote
+      summary: Add Externally Managed ENote
+      description: Adds an ENote from a vault managed outside of blend.
+      tags:
+        - Close
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Closing ID
+          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClosingExternallyManagedENotePostRequest'
+      responses:
+        200:
+          description: The external ENote has successfully been added to the closing.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Closing Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ClosingNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
 
 components:
   securitySchemes:
@@ -6267,7 +6558,6 @@ components:
       type: apiKey
       in: header
       name: blend-target-instance
-
 
   schemas:
     RawApplicationExportData:
@@ -6500,7 +6790,7 @@ components:
           example: '1000'
         countyName:
           type: string
-          example: 'DuPage'
+          example: 'Cook County'
     NameSchema:
       type: object
       required:
@@ -6509,13 +6799,13 @@ components:
       properties:
         firstName:
           type: string
-          example: John
+          example: Tanya
         middleName:
           type: string
           example: M
         lastName:
           type: string
-          example: Doe
+          example: Williams
         suffixName:
           type: string
           example: III
@@ -6734,7 +7024,7 @@ components:
         type:
           type: string
           description: Identifying type of party to the application
-          enum: ['BORROWER', 'COBORROWER', 'OTHER', 'REAL_ESTATE_AGENT', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER']
+          enum: ['BORROWER', 'COBORROWER', 'OTHER', 'REAL_ESTATE_AGENT', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'NON_APPLICANT_USER']
           example: 'SPOUSE'
         name:
           $ref: '#/components/schemas/NameSchema'
@@ -6798,6 +7088,23 @@ components:
           type: string
           description: IP Address from which econsent was given
           example: '8.8.8.8'
+    CustomFields:
+      type: object
+      properties:
+        fieldName:
+          $ref: '#/components/schemas/CustomFieldSchema'
+    CustomFieldSchema:
+      type: object
+      properties:
+        fieldValue:
+          type: string
+          description: value of the field
+          example: 'fldValue'
+        createdAt:
+          type: string
+          format: date-time
+          description: UTC Timestamp of when the field was created or updated
+          example: '2018-08-30T19:31:38.902Z'
     PostEconsentSchema:
       type: object
       required:
@@ -6896,7 +7203,7 @@ components:
           $ref: '#/components/schemas/ApplicationId'
         type:
           type: string
-          enum: ['OTHER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER']
+          enum: ['OTHER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'NON_APPLICANT_USER']
           example: 'SPOUSE'
         email:
           type: string
@@ -6907,6 +7214,8 @@ components:
           $ref: '#/components/schemas/LOSPartyIdSchema'
         econsent:
           $ref: '#/components/schemas/EconsentSchema'
+        customFields:
+          $ref: '#/components/schemas/CustomFields'
     PhoneNumberSchema:
       type: object
       properties:
@@ -7005,6 +7314,8 @@ components:
           example: Supporting Docs for Large Deposits
         signerInfo:
           $ref: '#/components/schemas/SignerInfoSchema'
+        customFields:
+          $ref: '#/components/schemas/CustomFields'
     DocumentRequestSchema:
       type: object
       required:
@@ -7046,6 +7357,10 @@ components:
           default: false
           example: false
           description: If set to true, uploaded document becomes accessible to borrowers; otherwise, only lender can view the document
+        customFields:
+          type: string
+          description: field name of the custom field
+          example: 'fieldName'
     DocumentExportStatusSchema:
       type: object
       properties:
@@ -7115,11 +7430,17 @@ components:
           type: string
           description: The community that the home resides in
           example: '2018 Market'
+        referralBrokerageConsentGiven:
+          description: A boolean indicating whether the borrower has opted into using Blend Realty
+          type: boolean
+          example: false
         createdDate:
           type: string
           format: date-time
           description: UTC timestamp of the application creation time
           example: '2019-06-02T00:00:00.000Z'
+        createdBy:
+          $ref: '#/components/schemas/CreatedByObject'
         estimatedClosingDate:
           $ref: '#/components/schemas/EstimatedClosingDate'
         exportedDate:
@@ -7246,6 +7567,8 @@ components:
           type: string
           description: ENUM describing the type of the mortgage
           enum: ['CONVENTIONAL', 'FHA', 'LOCAL_AGENCY', 'OTHER', 'PUBLIC_AND_INDIAN_HOUSING', 'STATE_AGENCY', 'USDARURAL_DEVELOPMENT', 'VA']
+        customFields:
+          $ref: '#/components/schemas/CustomFields'
     PackageSchema:
       type: object
       required:
@@ -7343,11 +7666,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7380,11 +7703,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7411,11 +7734,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7436,11 +7759,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7467,11 +7790,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7492,11 +7815,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7532,11 +7855,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7559,11 +7882,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7592,11 +7915,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7637,11 +7960,11 @@ components:
                     - pageNumber
                   properties:
                     xPosition:
-                      type: number
+                      type: integer
                     yPosition:
-                      type: number
+                      type: integer
                     pageNumber:
-                      type: number
+                      type: integer
                     tabId:
                       type: string
                     value:
@@ -7664,11 +7987,11 @@ components:
         name:
           type: string
           description: Lender Full Name
-          example: 'Joe Lender'
+          example: 'Ashley Lender'
         email:
           type: string
           description: Lender Email
-          example: 'joe.lender@example.com'
+          example: 'ashley.lender@example.com'
         permittedSolutionSubTypes:
           type: array
           description: Set of allowable solution types
@@ -7710,7 +8033,7 @@ components:
         losUsername:
           type: string
           description: Lender's LOS Username
-          example: 'joelender'
+          example: 'ashleylender'
         employeeId:
           type: string
           description: Lender's Employee Id
@@ -7730,7 +8053,7 @@ components:
         name:
           type: string
           description: Lender Full Name
-          example: 'Joe Lender'
+          example: 'Ashley Lender'
         permittedSolutionSubTypes:
           type: string
           description: Allowable solution type
@@ -7769,7 +8092,7 @@ components:
         losUsername:
           type: string
           description: Lender's LOS Username
-          example: 'joelender'
+          example: 'ashleylender'
         employeeId:
           type: string
           description: Lender's Employee Id
@@ -7790,11 +8113,11 @@ components:
         name:
           type: string
           description: Lender Full Name
-          example: 'Joe Lender'
+          example: 'Ashley Lender'
         email:
           type: string
           description: Lender Email
-          example: 'joe.lender@example.com'
+          example: 'ashley.lender@example.com'
         permittedSolutionSubTypes:
           type: array
           description: Loan Subtypes Permitted
@@ -7836,7 +8159,7 @@ components:
         losUsername:
           type: string
           description: Lender's LOS Username
-          example: 'joelender'
+          example: 'ashleylender'
         employeeId:
           type: string
           description: Lender's Employee Id
@@ -7853,7 +8176,10 @@ components:
           description: ENUM describing the Lender User's status in Blend
           enum: ['ACTIVE', 'ACTIVATION_REQUIRED', 'DORMANT', 'DELETED', 'PROVISIONAL', 'LOCKED_OUT']
         creditInternalAccountIdentifiers:
-          $ref: '#/components/schemas/CreditInternalAccountIdentifiers'
+          type: array
+          description: List of all the active creditInternalAccountIdentifiers
+          items:
+            $ref: '#/components/schemas/CreditInternalAccountIdentifiers'
     AccountApplicationSchema:
       type: object
       required:
@@ -7943,6 +8269,19 @@ components:
           description: Status of the application approval process.
           enum: ['APPROVED', 'REFER', 'REJECTED']
           example: 'APPROVED'
+        rejectedApplicants:
+          type: array
+          description: List of applicants removed from the current application via customer's decisioning policy.
+          items:
+            $ref: '#/components/schemas/RejectedApplicantSchema'
+        metadata:
+          type: object
+          description: additional info about the application
+          properties:
+            primaryAssignedReviewer:
+              $ref: '#/components/schemas/AOReviewerSchema'
+            decisioningReviewer:
+              $ref: '#/components/schemas/AOReviewerSchema'
     ApplicantSchema:
       type: object
       required:
@@ -7961,8 +8300,8 @@ components:
           example: '56632a12-1bd7-4014-8571-cff53c346738'
         type:
           type: string
-          description: Applicant type, primary or secondary
-          enum: ['PRIMARY', 'SECONDARY']
+          description: Applicant type, primary, secondary or minor
+          enum: ['PRIMARY', 'SECONDARY', 'MINOR']
           example: 'PRIMARY'
         email:
           type: string
@@ -7999,6 +8338,11 @@ components:
           $ref: '#/components/schemas/IdentityVerificationSchema'
         identityDocumentation:
           $ref: '#/components/schemas/IdentityDocumentationSchema'
+        employmentStatus:
+          type: string
+          description: current listed employment status
+          enum: ['EMPLOYED', 'SELF_EMPLOYED', 'RETIRED', 'UNEMPLOYED', 'NEVER_EMPLOYED']
+          example: 'SELF_EMPLOYED'
         employers:
           type: array
           description: List of applicant's employers
@@ -8013,6 +8357,100 @@ components:
           type: string
           description: Unique identifier for customer's core banking system.
           example: 'b258096c-c5f3-410f-ba56-08801f1a8752'
+        maritalStatus:
+          type: string
+          description: Applicant marital status
+          enum: ['MARRIED', 'SEPARATED', 'UNMARRIED', 'DOMESTIC_PARTNER']
+          example: 'MARRIED'
+    # NOTE: this can inherit from ApplicantSchema via $ref and override 'type' starting with open api 3.1
+    RejectedApplicantSchema:
+      type: object
+      required:
+        - _id
+        - type
+        - email
+        - name
+        - dateOfBirth
+        - socialSecurityNumber
+        - addresses
+        - phoneNumbers
+      properties:
+        _id:
+          type: string
+          description: Internal applicant ID
+          example: '56632a12-1bd7-4014-8571-cff53c346738'
+        type:
+          type: string
+          description: Applicant type
+          enum: ['REJECTED']
+          example: 'REJECTED'
+        email:
+          type: string
+          description: Applicant email address
+          example: 'jane.smith@company.com'
+        name:
+          description: Applicant name
+          $ref: '#/components/schemas/NameSchema'
+        dateOfBirth:
+          #### Britt TODO: Make AO a ticket to update for 3.0 or update these docs.
+          type: string
+          description: Applicant birth date, UNIX timestamp (milliseconds)
+          example: '1537222722246'
+        socialSecurityNumber:
+          type: string
+          description: Applicant SSN
+          example: '111224444'
+        creditConsentIndicator:
+          type: boolean
+          description: Indicates whether applicant consented to credit policy for Identity Verification purposes.
+          example: true
+        addresses:
+          description: List of applicant addresses, current or mailing
+          type: array
+          items:
+            $ref:
+              '#/components/schemas/AccountApplicationAddressSchema'
+        phoneNumbers:
+          description: List of phone numbers associated with applicant
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountApplicationPhoneNumberSchema'
+        identityVerificationStatus:
+          $ref: '#/components/schemas/IdentityVerificationSchema'
+        identityDocumentation:
+          $ref: '#/components/schemas/IdentityDocumentationSchema'
+        employers:
+          type: array
+          description: List of applicant's employers
+          items:
+            $ref: '#/components/schemas/EmployerSchema'
+        employments:
+          type: array
+          description: List of applicant's employments
+          items:
+            $ref: '#/components/schemas/EmploymentSchema'
+        coreBankingId:
+          type: string
+          description: Unique identifier for customer's core banking system.
+          example: 'b258096c-c5f3-410f-ba56-08801f1a8752'
+        maritalStatus:
+          type: string
+          description: Applicant marital status
+          enum: ['MARRIED', 'SEPARATED', 'UNMARRIED', 'DOMESTIC_PARTNER']
+          example: 'MARRIED'
+    AOReviewerSchema:
+      type: object
+      required:
+        - '_id'
+      properties:
+        _id:
+          type: string
+          description: Internal reviewer ID
+          example: '56632a12-1bd7-4014-8571-cff53c346738'
+        fullName:
+          type: string
+          description: The full name of the reviewer
+          example: 'John Smith'
     AccountApplicationAddressSchema:
       type: object
       required:
@@ -8162,13 +8600,11 @@ components:
           enum: ['Hard', 'Soft']
         creditPullScenario:
           type: string
-          description: The loan type for which the account identifier is being configured for.
-          enum: ["MORTGAGE", "HELOC", "HELOAN", "AUTO", "ACCOUNT_OPENING"]
+          description: Credit Pull Scenario
           example: 'MORTGAGE'
         creditProvider:
           type: string
-          description: Credit Provider Name for which the account identifiers are being configured for.
-          enum: ["INFORMATIVE_RESEARCH", "CBC", "KROLL_FACTUAL_DATA"]
+          description: Credit Provider
           example: 'INFORMATIVE_RESEARCH'
         creditAccountIdentifier:
           type: string
@@ -8250,10 +8686,10 @@ components:
                 latestEvaluationURL:
                   type: string
                   description: URL for latest evaluation
-            latestEvaluationDetails:
-              type: object
-              description: additional information regarding the latest identity verification evaluation
-              example: { 'evaluationTimestamp': 1602874133242 }
+                latestEvaluationDetails:
+                  type: object
+                  description: additional information regarding the latest identity verification evaluation
+                  example: { 'evaluationTimestamp': 1602874133242 }
     FundingAccountSchema:
       type: object
       required:
@@ -8277,9 +8713,9 @@ components:
           description: Additional text describing account
           example: 'Premium Checking Account'
         accountNumber:
-          type: string
+          type: number
           description: Account number
-          example: '33112244'
+          example: 33112244
         routingNumber:
           type: string
           description: Routing number
@@ -8307,9 +8743,9 @@ components:
           description: Additional text describing account
           example: 'Premium Checking Account'
         accountNumber:
-          type: string
+          type: number
           description: Account number
-          example: '33112244'
+          example: 33112244
         routingNumber:
           type: string
           description: Routing number
@@ -8444,6 +8880,29 @@ components:
           type: string
           description: Routing number of booked account
           example: '00227799'
+        accessLimits:
+          type: array
+          description: access limits for the given account
+          items:
+            type: object
+            required:
+              - 'type'
+              - 'display'
+              - 'value'
+            properties:
+              type:
+                type: string
+                enum: ['ATM', 'DEBIT_CARD', 'PROVISIONAL_CREDIT']
+                description: type of access limit
+                example: 'ATM'
+              display:
+                type: string
+                description: access limit display shown to applicants
+                example: 'ATM withdrawal limit per day'
+              value:
+                type: number
+                description: limit amount (in dollars)
+                example: 500
     PatchApplicantSchema:
       type: object
       required:
@@ -8466,7 +8925,7 @@ components:
         type:
           type: string
           description: The type of integration event which is being completed
-          enum: ['applicationSubmitted', 'applicationRejected', 'accountReadyToFund']
+          enum: ['applicationSubmitted', 'applicationRejected', 'accountReadyToFund', 'applicantRejected', 'applicantReadyForDecisioning']
           example: 'applicationSubmitted'
         status:
           type: string
@@ -8925,7 +9384,7 @@ components:
           example: 'c6dabfb0-8753-4a89-b8f0-af059ef869f7'
         uploadedByUserType:
           type: string
-          description: The type of user that uploaded the document. Eg "borrower", "lender", "system", "internal_api", "external_api"
+          description: The type of user that uploaded the document. Eg "borrower", "lender", "system", "internal_api", "external_api". If the source is system or from the API, those are generally documents uploaded by Blend, or they can also be from internal/third party integrations that use the APIs to upload documents
           example: "lender"
         type:
           $ref: '#/components/schemas/DocumentType'
@@ -8997,6 +9456,10 @@ components:
           type: string
           description: The latest completed borrower milestone within Blend
           example: 'Review and Submit Application_0'
+        userAgent:
+          type: string
+          description: The most recent borrower user agent. Can be used to derive the last device type used.
+          example: 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
     ReportingLenderSchema:
       type: object
       required:
@@ -9341,7 +9804,7 @@ components:
           example: 'lam@vic.com'
         activityType:
           type: string
-          description: Which PAB Activity was done on the loan
+          description: Which PAB Activity was done on the loan. Can be 'ecoa updated', 'pulled credit' 'selected a product' 'sent pre-approval letter' 'ran desktop underwriter'
           example: 'pulled credit'
         activityDatetime:
           type: string
@@ -9451,6 +9914,8 @@ components:
             - applicationSubmitted
             - applicationRejected
             - accountReadyToFund
+            - applicantRejected
+            - applicantReadyForDecisioning
             - disclosuresViewed
             - disclosuresSigned
             - disclosuresExpired
@@ -10583,7 +11048,7 @@ components:
           example: 'c2006a70-a19c-4b9f-973d-3a561e159063'
         partyType:
           type: string
-          enum: ['OTHER', 'BORROWER', 'LENDER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER']
+          enum: ['OTHER', 'BORROWER', 'LENDER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'NON_APPLICANT_USER']
           example: 'BORROWER'
         status:
           type: string
@@ -10612,18 +11077,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/WetsignPostMetadataSchema'
         - type: object
-      required:
-        - documentStatus
       properties:
-        documentStatus:
-          type: object
-          description: Object showing the status for each document. The keys are the documentIds and the values are the statuses.
-          additionalProperties:
-            type: string
-            enum: ['HAS_NOT_VIEWED', 'VIEWED', 'SIGNED']
-          example:
-            9250f84b-c2a1-4cab-b265-bd720485c361: 'VIEWED'
-            cc730ed3-0d46-493d-bd85-8cddc60e45d1: 'SIGNED'
         viewedAt:
           type: string
           description: ISO timestamp
@@ -11124,7 +11578,7 @@ components:
             closingStatus:
               type: string
               description: The closing status
-              enum: ['DRAFT', 'SENT', 'SENT_DAY_OF', COMPLETED']
+              enum: ['DRAFT', 'SENT', 'SENT_DAY_OF', 'COMPLETED']
               example: 'COMPLETED'
             lastSentAt:
               type: string
@@ -11187,8 +11641,8 @@ components:
     ClosingPartyType:
       type: string
       description: The closing party type
-      enum: ['SETTLEMENT', 'ATTORNEY', 'CLOSER', 'SUPPORTING_PARTY']
-      example: 'SETTLEMENT'
+      enum: ['SETTLEMENT', 'TITLE', 'ATTORNEY', 'CLOSER', 'SUPPORTING_PARTY']
+      example: 'TITLE'
     ClosingParty:
       description: Information about a closing party.
       allOf:
@@ -11462,6 +11916,31 @@ components:
       properties:
         sourceType:
           $ref: '#/components/schemas/ClosingSourceType'
+    ClosingExternallyManagedENotePostRequest:
+      type: object
+      required:
+        - vaultData
+      properties:
+        vaultData:
+          $ref: '#/components/schemas/VaultData'
+    VaultData:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/EOriginalVault'
+    EOriginalVault:
+      type: object
+      required:
+        - eOriginal
+      properties:
+        eOriginal:
+          type: object
+          required:
+            - transactionId
+          properties:
+            transactionId:
+              type: string
+              description: The transactionId for the externally managed EOriginal Vault where the ENote is stored.
+              example: '11180467'
     ClosingENotePostRequest:
       type: object
       required:
@@ -12130,3 +12609,79 @@ components:
         trackingId:
           type: string
           example: 'd9b5eb21-904c-4eff-a092-65eaa08bfdbb'
+    CustomFieldsObject:
+      type: object
+    CreatedByObject:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          example: Either a uuid (062773a3-18c9-4a79-80d2-9a73998b2ac0) or 'system'
+        type:
+          type: string
+          example: The type of user who created this application
+          enum: ['ADMIN', 'AUTHENTICATED', 'BORROWER', 'EXTERNAL_API', 'INSURANCE_QC_AGENT', 'INTERNAL_API', 'LENDER', 'SETTLEMENT_AGENT', 'SYSTEM']
+    VerifiedEmployersSchema:
+      type: object
+      description: Summary of Verified Employers data on an application.
+      properties:
+        verifiedEmployers:
+          type: array
+          items:
+            $ref: '#/components/schemas/VerifiedEmployersSummarySchema'
+    VerifiedEmployersSummarySchema:
+      type: object
+      description: Summary of Verified Employers data per borrower on an application
+      required:
+        - partyId
+      properties:
+        partyId:
+          type: string
+          description: The UUID of the partyId.
+          example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
+        employerDetails:
+          type: array
+          description: Summary of Verified Employer object per borrower on an application.
+          items:
+            $ref: '#/components/schemas/VerifiedEmployerObjectSchema'
+    VerifiedEmployerObjectSchema:
+      type: object
+      description: Summary of Verified Employer object per borrower on an application.
+      required:
+        - employerId
+      properties:
+        status:
+          type: string
+          description: Outcome of the employer verification.
+          enum: ['NOT_STARTED', 'UNABLE_TO_PROCESS', 'REQUESTING', 'AWAITING_DATA', 'AWAITING_MANUAL_VERIFICATION', 'DATA_RECEIVED', 'FAILED_VERIFICATION']
+          example: 'DATA_RECEIVED'
+        employerName:
+          type: string
+          description: Name of the verified employer.
+          example: 'Enterprise One'
+        employerId:
+          type: string
+          description: The UUID of the employerId.
+          example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
+    EmployersReverifyRequestSchema:
+      type: object
+      description: Parameters for Employers Reverification request
+      required:
+        - applicationId
+        - partyId
+        - employerIds
+      properties:
+        applicationId:
+          $ref: '#/components/schemas/ApplicationId'
+        partyId:
+          type: string
+          description: The UUID of the partyId.
+          example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
+        employerIds:
+          type: array
+          description: These are the employers that a reverify will be initiated for.
+          items:
+            type: string
+            example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
