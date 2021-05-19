@@ -50,7 +50,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/parties",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/parties",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -61,7 +61,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"parties"
 									]
 								}
@@ -107,7 +107,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/underwriting-results",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/underwriting-results",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -118,7 +118,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"underwriting-results"
 									]
 								}
@@ -127,6 +127,20 @@
 						},
 						{
 							"name": "Post a Home Lending Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"applicationId\", jsonData.id);",
+											"",
+											"pm.response.to.have.status(200);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"protocolProfileBehavior": {
 								"disabledSystemHeaders": {
 									"content-type": true
@@ -163,7 +177,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"customFields\": {\n          \"LosPartyId123\": \"0000\"\n          },\n    \"party\" : {\n        \"email\": \"vaidehi+tt2@blend.com\",\n        \"name\": {\n            \"firstName\": \"TT2\",\n            \"lastName\": \"TT2 Last\"\n        }\n    }\n}"
+									"raw": "{\n  \"customFields\": {\n          \"LosParty3\": \"0000\"\n          },\n    \"party\" : {\n        \"email\": \"vaidehi+tt2@blend.com\",\n        \"name\": {\n            \"firstName\": \"TT2\",\n            \"lastName\": \"TT2 Last\"\n        }\n    }\n}"
 								},
 								"url": {
 									"raw": "https://api.sandbox.centrio.com/home-lending/applications",
@@ -223,7 +237,7 @@
 									"raw": "{\n    \"status\": \"IN_PROGRESS\",\n    \"reason\": \"xyz\"\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/export-status",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/export-status",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -234,7 +248,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"export-status"
 									]
 								}
@@ -282,7 +296,7 @@
 									"raw": "{\n    \"assignees\": [\n        {\n            \"role\": \"PRIMARY_ASSIGNEE\",\n            \"userId\": \"276f4daa-7fdf-4719-b27c-f0446b166ccf\"\n        }\n    ]\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/assignees",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/assignees",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -293,7 +307,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"assignees"
 									]
 								}
@@ -338,7 +352,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"losMilestones\": [\n        {\n            \"applicationId\": \"4ce685f2-357c-4da5-99ea-a15da3479a0d\",\n            \"losMilestone\": \"SUBMITTED\"\n        }\n    ],\n    \"override\": true\n}"
+									"raw": "{\n    \"losMilestones\": [\n        {\n            \"applicationId\": \"{{applicationId}}\",\n            \"losMilestone\": \"SUBMITTED\"\n        }\n    ],\n    \"override\": true\n}"
 								},
 								"url": {
 									"raw": "https://api.sandbox.centrio.com/home-lending/applications/los-milestones",
@@ -400,7 +414,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/los-milestones",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/los-milestones",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -411,7 +425,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"los-milestones"
 									]
 								}
@@ -459,7 +473,7 @@
 									"raw": "{\n    \"losMilestone\": \"UNDERWRITING\"\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/los-milestones",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/los-milestones",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -470,7 +484,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"los-milestones"
 									]
 								}
@@ -516,7 +530,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -527,7 +541,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d"
+										"{{applicationId}}"
 									]
 								}
 							},
@@ -572,7 +586,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/itp",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/itp",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -583,7 +597,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"itp"
 									]
 								}
@@ -626,7 +640,7 @@
 									"raw": "{\n    \"borrowerId\": \"9c8eded4-7cdf-4637-813a-2aa5946f68e6\"\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/itp",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/itp",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -637,7 +651,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"itp"
 									]
 								}
@@ -683,7 +697,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/file-export?format=mismo",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/file-export?format=mismo",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -694,7 +708,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"file-export"
 									],
 									"query": [
@@ -746,7 +760,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/borrower-positions",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/borrower-positions",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -757,7 +771,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"borrower-positions"
 									]
 								}
@@ -800,7 +814,7 @@
 									"raw": "{\n    \"borrowerPairs\": [\n        {\n            \"primaryBorrowerId\": \"6916221e-7aa2-4057-bb2c-6e2a274e4365\",\n            \"secondaryBorrowerId\": \"9c8eded4-7cdf-4637-813a-2aa5946f68e6\"\n        }\n    ]\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/borrower-positions",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/borrower-positions",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -811,7 +825,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"borrower-positions"
 									]
 								}
@@ -857,7 +871,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/assignees",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/assignees",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -868,7 +882,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"assignees"
 									]
 								}
@@ -911,7 +925,7 @@
 									"raw": "{\n    \"assignees\": [\n        {\n            \"role\": \"PRIMARY_ASSIGNEE\",\n            \"userId\": \"276f4daa-7fdf-4719-b27c-f0446b166ccf\"\n        }\n    ]\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/assignees",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/assignees",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -922,7 +936,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"assignees"
 									]
 								}
@@ -965,7 +979,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/be98ab84-d7f6-495d-8b3b-8970bcf55fba",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -976,7 +990,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"be98ab84-d7f6-495d-8b3b-8970bcf55fba"
+										"{{applicationId}}"
 									]
 								}
 							},
@@ -1077,7 +1091,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/export-statuses?ids=4ce685f2-357c-4da5-99ea-a15da3479a0d",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/export-statuses?ids={{applicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1093,7 +1107,7 @@
 									"query": [
 										{
 											"key": "ids",
-											"value": "4ce685f2-357c-4da5-99ea-a15da3479a0d"
+											"value": "{{applicationId}}"
 										}
 									]
 								}
@@ -1141,7 +1155,7 @@
 									"raw": "{\n  \"referrerUserId\": \"e6da2d58-7a41-4e1d-9e69-0af9f7c0cad2\"\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1152,7 +1166,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d"
+										"{{applicationId}}"
 									]
 								}
 							},
@@ -1197,7 +1211,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/documents",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/documents",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1208,7 +1222,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"documents"
 									]
 								}
@@ -1313,7 +1327,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/documents/6ba15b92-812d-4000-987e-c1e7ea36eac2/export-statuses",
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}/export-statuses",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1323,7 +1337,7 @@
 									],
 									"path": [
 										"documents",
-										"6ba15b92-812d-4000-987e-c1e7ea36eac2",
+										"{{documentId}}",
 										"export-statuses"
 									]
 								}
@@ -1399,7 +1413,7 @@
 										},
 										{
 											"key": "applicationId",
-											"value": "be98ab84-d7f6-495d-8b3b-8970bcf55fba",
+											"value": "{{applicationId}}",
 											"type": "text"
 										},
 										{
@@ -1480,10 +1494,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"exportedTime\": \"\",\n  \"losId\": \"\"\n}"
+									"raw": "{\n  \"exportedTime\": \"2021-01-23T20:07:27+00:00\",\n  \"customFields\": {\n      \"ed56s\": \"5\"\n  }\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/documents/id",
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1493,7 +1507,7 @@
 									],
 									"path": [
 										"documents",
-										"id"
+										"{{documentId}}"
 									]
 								}
 							},
@@ -1538,7 +1552,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/documents/6ba15b92-812d-4000-987e-c1e7ea36eac2",
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1548,7 +1562,7 @@
 									],
 									"path": [
 										"documents",
-										"6ba15b92-812d-4000-987e-c1e7ea36eac2"
+										"{{documentId}}"
 									]
 								}
 							},
@@ -1593,7 +1607,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/documents/id/metadata",
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}/metadata",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1603,7 +1617,7 @@
 									],
 									"path": [
 										"documents",
-										"id",
+										"{{documentId}}",
 										"metadata"
 									]
 								}
@@ -1651,7 +1665,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/parties/0a6687ae-b85e-4b6b-870d-db3581aee608",
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1661,7 +1675,7 @@
 									],
 									"path": [
 										"parties",
-										"0a6687ae-b85e-4b6b-870d-db3581aee608"
+										"{{partyId}}"
 									]
 								}
 							},
@@ -1708,7 +1722,7 @@
 									"raw": "{\n  \"customFields\": {\n            \"PartyNum\": \"P01/09\"\n  }\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/parties/9c8eded4-7cdf-4637-813a-2aa5946f68e6",
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1718,7 +1732,7 @@
 									],
 									"path": [
 										"parties",
-										"9c8eded4-7cdf-4637-813a-2aa5946f68e6"
+										"{{partyId}}"
 									]
 								}
 							},
@@ -1726,6 +1740,20 @@
 						},
 						{
 							"name": "Add a Party to a Specific Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"partyId\", jsonData.id);",
+											"",
+											"pm.response.to.have.status(200);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"protocolProfileBehavior": {
 								"disabledSystemHeaders": {
 									"content-type": true
@@ -1762,7 +1790,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"applicationId\": \"4ce685f2-357c-4da5-99ea-a15da3479a0d\",\n  \"customFields\": {\n          \"LosPartyId\": \"GOGETTER1\"\n          },\n        \"email\": \"vaidehi+tt13@blend.com\",\n        \"name\": {\n            \"firstName\": \"TT13\",\n            \"lastName\": \"TT13 Last\"\n        },\n        \"type\": \"COBORROWER\"\n}"
+									"raw": "{\n  \"applicationId\": \"4ce685f2-357c-4da5-99ea-a15da3479a0d\",\n  \"customFields\": {\n          \"LosPartyId\": \"GOGE\"\n          },\n        \"email\": \"vaidehi+TT1000000@blend.com\",\n        \"name\": {\n            \"firstName\": \"TT1000000\",\n            \"lastName\": \"TT1000000 Last\"\n        },\n        \"type\": \"COBORROWER\"\n}"
 								},
 								"url": {
 									"raw": "https://api.sandbox.centrio.com/parties",
@@ -1821,7 +1849,7 @@
 									"raw": "{\n  \"employers\": [\n        {\n            \"status\": \"CURRENT\",\n            \"name\": \"Blend\",\n            \"title\": \"Quality Engineer\",\n            \"yearsInProfession\": 7,\n            \"type\": \"GENERAL_EMPLOYMENT\",\n            \"startDate\": \"2017-07-10\",\n            \"address\": {\n                \"streetAddressLine1\": \"415 Kearny Street\",\n                \"streetAddressLine2\": \"\",\n                \"city\": \"San Francisco\",\n                \"state\": \"CA\",\n                \"zipCode\": \"94108\"\n            },\n            \"incomes\": [\n                {\n                    \"type\": \"BASE\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 100000.75\n                    }\n                },\n                {\n                    \"type\": \"BONUS\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 2120.59\n                    }\n                },\n                {\n                    \"type\": \"OVERTIME\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 6500.8333334\n                    }\n                },\n                {\n                    \"type\": \"COMMISSIONS\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 329.1666667\n                    }\n                }\n            ],\n            \"phoneNumber\": 158.85\n        }\n    ]\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/parties/6916221e-7aa2-4057-bb2c-6e2a274e4365/employers",
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}/employers",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1831,7 +1859,7 @@
 									],
 									"path": [
 										"parties",
-										"6916221e-7aa2-4057-bb2c-6e2a274e4365",
+										"{{partyId}}",
 										"employers"
 									]
 								}
@@ -1877,7 +1905,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/parties/6916221e-7aa2-4057-bb2c-6e2a274e4365/employers",
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}/employers",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1887,7 +1915,7 @@
 									],
 									"path": [
 										"parties",
-										"6916221e-7aa2-4057-bb2c-6e2a274e4365",
+										"{{partyId}}",
 										"employers"
 									]
 								}
@@ -1910,7 +1938,7 @@
 									"bearer": [
 										{
 											"key": "token",
-											"value": "{{bearer-token}}",
+											"value": "YXBpLXNlY3JldC10b2tlbjo2NTExODY3NmYxNzQ0ZjUyYTVhNjczYWNiYjcwYTBjNzpFYUY2S3ZpdklieE5XSWRzcDBic09kdDdsZW8yOGxEVA==",
 											"type": "string"
 										}
 									]
@@ -1938,7 +1966,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -1948,7 +1976,8 @@
 									],
 									"path": [
 										"close",
-										"closings"
+										"closings",
+										"{{closingId}}"
 									]
 								}
 							},
@@ -1962,7 +1991,7 @@
 									"bearer": [
 										{
 											"key": "token",
-											"value": "{{bearer-token}}",
+											"value": "YXBpLXNlY3JldC10b2tlbjo2NTExODY3NmYxNzQ0ZjUyYTVhNjczYWNiYjcwYTBjNzpFYUY2S3ZpdklieE5XSWRzcDBic09kdDdsZW8yOGxEVA==",
 											"type": "string"
 										}
 									]
@@ -2050,7 +2079,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/id/enote",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/enote",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2061,7 +2090,7 @@
 									"path": [
 										"close",
 										"closings",
-										"id",
+										"{{closingId}}",
 										"enote"
 									]
 								}
@@ -2070,6 +2099,20 @@
 						},
 						{
 							"name": "Create a Closing",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"closingId\", jsonData.id);",
+											"",
+											"pm.response.to.have.status(200);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"protocolProfileBehavior": {
 								"disabledSystemHeaders": {
 									"content-type": true
@@ -2106,7 +2149,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"applicationId\" : \"36f63a4a-3ae4-44c9-b2dd-cef4b671bd3d\"\n}"
+									"raw": "{\n  \"applicationId\" : \"{{applicationId}}\"\n}"
 								},
 								"url": {
 									"raw": "https://api.sandbox.centrio.com/close/closings",
@@ -2223,7 +2266,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2234,7 +2277,7 @@
 									"path": [
 										"close",
 										"closings",
-										"{{closingid}}"
+										"{{closingId}}"
 									]
 								}
 							},
@@ -2281,7 +2324,7 @@
 									"raw": "{\n  \"closingType\": \"HYBRID\",\n  \"closingDate\": \"2021-01-28T12:00:00-09:00\",\n  \"closingParties\": [\n    {\n      \"email\": \"smagelowitz+title@blend.com\",\n      \"partyType\": \"SETTLEMENT\",\n      \"firstName\": \"Steve\",\n      \"lastName\": \"Title\"\n    }\n  ]\n}\n\n"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2292,7 +2335,7 @@
 									"path": [
 										"close",
 										"closings",
-										"{{closingid}}"
+										"{{closingId}}"
 									]
 								}
 							},
@@ -2339,7 +2382,7 @@
 									"raw": "{\n  \"vaultData\": {\n          \"eOriginal\": {\n              \"transactionId\" : \"11200139\"\n          }\n  }\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}/external-enote",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/external-enote",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2350,7 +2393,7 @@
 									"path": [
 										"close",
 										"closings",
-										"{{closingid}}",
+										"{{closingId}}",
 										"external-enote"
 									]
 								}
@@ -2401,7 +2444,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/audit/closings/{{closingid}}",
+									"raw": "https://api.sandbox.centrio.com/close/audit/closings/{{closingId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2413,7 +2456,7 @@
 										"close",
 										"audit",
 										"closings",
-										"{{closingid}}"
+										"{{closingId}}"
 									]
 								}
 							},
@@ -2460,7 +2503,7 @@
 									"raw": "{\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/id/enote",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/enote",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2471,7 +2514,7 @@
 									"path": [
 										"close",
 										"closings",
-										"id",
+										"{{closingId}}",
 										"enote"
 									]
 								}
@@ -2756,7 +2799,7 @@
 									"raw": "{\n  \"smartDocTemplateData\": {\n    \"fixedLoan\": {\n      \"formId\": \"3200e\",\n      \"scheduledFirstPaymentDate\": \"2020-12-12\",\n      \"paymentRemittanceDay\": 15,\n      \"propertyAddress\": {\n        \"unparsedStreetAddress\": {\n          \"addressLineText\": \"888 Rainbow Lane\"\n        },\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"postalCode\": \"10001\",\n        \"county\": \"NEW YORK\"\n      },\n      \"notePayToAddress\": {\n        \"streetAddress\": \"888 Rainbow Lane\",\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"postalCode\": \"10001\"\n      },\n      \"closingDocumentInfo\": {\n        \"lender\": {\n          \"unparsedName\": \"Gabriel Lender Corp\",\n          \"contactName\": \"Gabriel Lenderson\",\n          \"nmlsId\": 12345\n        },\n        \"loanOriginator\": {\n          \"unparsedName\": \"Gabriel Originatorson\",\n          \"nmlsId\": 123456\n        },\n        \"executionDate\": \"2020-08-20\",\n        \"executionCity\": \"New York\",\n        \"executionState\": \"NY\"\n      },\n      \"noteRatePercent\": 30.5,\n      \"loanMaturityDate\": \"2030-12-12\",\n      \"originalPrincipalAndInterestPaymentAmount\": 12000,\n      \"lateChargeGracePeriod\": 15,\n      \"lateChargeRate\": 10\n    }\n  }\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}/enote",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/enote",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2767,7 +2810,7 @@
 									"path": [
 										"close",
 										"closings",
-										"{{closingid}}",
+										"{{closingId}}",
 										"enote"
 									]
 								}
@@ -2828,7 +2871,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/account-applications/89f1baed-39b9-4d0a-8ade-72d8995af9e9",
+									"raw": "https://api.sandbox.centrio.com/account-applications/{{accountOpeningApplicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2838,7 +2881,7 @@
 									],
 									"path": [
 										"account-applications",
-										"89f1baed-39b9-4d0a-8ade-72d8995af9e9"
+										"{{accountOpeningApplicationId}}"
 									]
 								}
 							},
@@ -2890,7 +2933,7 @@
 									"raw": "{\n    \"integrationEvent\": {\n        \"type\": \"applicationSubmitted\",\n        \"status\": \"FAILED_RETRYABLE\"\n    }\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/account-applications/446c217b-3ed8-4e07-82db-78d42a9b593a",
+									"raw": "https://api.sandbox.centrio.com/account-applications/{{accountOpeningApplicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2900,7 +2943,7 @@
 									],
 									"path": [
 										"account-applications",
-										"446c217b-3ed8-4e07-82db-78d42a9b593a"
+										"{{accountOpeningApplicationId}}"
 									]
 								}
 							},
@@ -2950,7 +2993,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/employers/verified?applicationId=51580fc9-e5b2-4b97-aa04-e3722f004bbf",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/employers/verified?applicationId={{applicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -2967,7 +3010,7 @@
 									"query": [
 										{
 											"key": "applicationId",
-											"value": "51580fc9-e5b2-4b97-aa04-e3722f004bbf"
+											"value": "{{applicationId}}"
 										}
 									]
 								}
@@ -3012,7 +3055,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"applicationId\": \"2519456b-0865-483d-89d3-f12f98a38322\",\n  \"employerIds\": [\"da8622cf-8790-4e14-8e60-7a7ef395b2fb\"],\n  \"partyId\": \"ba334e8c-c817-4728-a989-f956bf767f94\"\n}"
+									"raw": "{\n  \"applicationId\": \"{{applicationId}}\",\n  \"employerIds\": [\"da8622cf-8790-4e14-8e60-7a7ef395b2fb\"],\n  \"partyId\": \"ba334e8c-c817-4728-a989-f956bf767f94\"\n}"
 								},
 								"url": {
 									"raw": "https://api.sandbox.centrio.com/home-lending/applications/employers/reverify",
@@ -3039,7 +3082,7 @@
 					"name": "Eclose",
 					"item": [
 						{
-							"name": "Update a Specific Closing",
+							"name": "Update a Specific Closing Copy",
 							"protocolProfileBehavior": {
 								"disabledSystemHeaders": {
 									"content-type": true
@@ -3076,10 +3119,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"scheduledCeremonyTime\": \"2021-01-23T20:07:27+00:00\",\n  \"timezone\": \"\"\n}"
+									"raw": "{\n  \"closingType\": \"HYBRID\",\n  \"closingDate\": \"2021-01-28T12:00:00-09:00\",\n  \"closingParties\": [\n    {\n      \"email\": \"smagelowitz+title@blend.com\",\n      \"partyType\": \"SETTLEMENT\",\n      \"firstName\": \"Steve\",\n      \"lastName\": \"Title\"\n    }\n  ]\n}\n\n"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/id",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3090,7 +3133,7 @@
 									"path": [
 										"close",
 										"closings",
-										"id"
+										"{{closingid}}"
 									]
 								}
 							},
@@ -3134,10 +3177,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"vaultData\": {\n          \"eOriginal\": {\n              \"transactionId\" : \"\"\n          }\n  }\n}"
+									"raw": "{\n  \"vaultData\": {\n          \"eOriginal\": {\n              \"transactionId\" : \"11200139\"\n          }\n  }\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/id/external-enote",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}/external-enote",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3148,7 +3191,7 @@
 									"path": [
 										"close",
 										"closings",
-										"id",
+										"{{closingid}}",
 										"external-enote"
 									]
 								}
@@ -3196,7 +3239,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/id/pre-closing-documents/send",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/pre-closing-documents/send",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3207,7 +3250,7 @@
 									"path": [
 										"close",
 										"closings",
-										"id",
+										"{{closingId}}",
 										"pre-closing-documents",
 										"send"
 									]
@@ -3253,10 +3296,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"documents\": {\n          \"documentID\": \"\"\n          }\n}"
+									"raw": "{\n\t\"documents\": [\n\t\t{\n\t\t\t\"documentID\": \"{{docId_a}}\"\n\t\t}\n\t]\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/close/closings/id/pre-closing-documents",
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/pre-closing-documents",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3267,7 +3310,7 @@
 									"path": [
 										"close",
 										"closings",
-										"id",
+										"{{closingId}}",
 										"pre-closing-documents"
 									]
 								}
@@ -3383,7 +3426,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications?",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3394,12 +3437,6 @@
 									"path": [
 										"home-lending",
 										"applications"
-									],
-									"query": [
-										{
-											"key": "",
-											"value": null
-										}
 									]
 								}
 							},
@@ -3444,7 +3481,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications?custom_field_query=LosPartyId=LO011abcId&TestField1=Test123",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications?custom_field_query=field2=value2&field5=value5",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3459,11 +3496,11 @@
 									"query": [
 										{
 											"key": "custom_field_query",
-											"value": "LosPartyId=LO011abcId"
+											"value": "field2=value2"
 										},
 										{
-											"key": "TestField1",
-											"value": "Test123"
+											"key": "field5",
+											"value": "value5"
 										}
 									]
 								}
@@ -3472,6 +3509,21 @@
 						},
 						{
 							"name": "Post a Home Lending Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = JSON.parse(responseBody);",
+											"",
+											"if(pm.response.code === 200) {",
+											"    postman.setEnvironmentVariable(\"applicationId\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"protocolProfileBehavior": {
 								"disabledSystemHeaders": {
 									"content-type": true
@@ -3508,7 +3560,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"customFields\": {\n          \"LosPartyId123\": \"45545\",\n          \"T11\": \"2\",\n          \"T2\": \"3\",\n          \"T3\": \"34343\"\n          },\n    \"party\" : {\n        \"email\": \"vaidehi+tt2@blend.com\",\n        \"name\": {\n            \"firstName\": \"TT2\",\n            \"lastName\": \"TT2 Last\"\n        }\n    }\n}"
+									"raw": "{\n  \"customFields\": {\n          \"fgd\":\"kjlf\"\n          },\n    \"party\" : {\n        \"email\": \"vaidehi+test1@blend.com\",\n        \"name\": {\n            \"firstName\": \"Test1\",\n            \"lastName\": \"Test1 Test1Last\"\n        }\n    }\n}"
 								},
 								"url": {
 									"raw": "https://api.sandbox.centrio.com/home-lending/applications",
@@ -3558,8 +3610,7 @@
 									{
 										"key": "blend-target-instance",
 										"value": "{{instance}}",
-										"type": "text",
-										"disabled": true
+										"type": "text"
 									}
 								],
 								"body": {
@@ -3567,7 +3618,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3578,7 +3629,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d"
+										"{{applicationId}}"
 									]
 								}
 							},
@@ -3602,7 +3653,7 @@
 										}
 									]
 								},
-								"method": "POST",
+								"method": "PATCH",
 								"header": [
 									{
 										"key": "Content-Type",
@@ -3622,10 +3673,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"referringUser\": \"afcc0367-3e38-4254-accb-558dc3247e27\"\n}"
+									"raw": "{\n  \"customFields\": {\n        \"fieldz\": \"valuez\"}\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/32199987-fc26-4094-bebd-c11bff95b822/referringUser",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3636,8 +3687,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"32199987-fc26-4094-bebd-c11bff95b822",
-										"referringUser"
+										"{{applicationId}}"
 									]
 								}
 							},
@@ -3682,7 +3732,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/home-lending/applications/4ce685f2-357c-4da5-99ea-a15da3479a0d/documents",
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/documents",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3693,7 +3743,7 @@
 									"path": [
 										"home-lending",
 										"applications",
-										"4ce685f2-357c-4da5-99ea-a15da3479a0d",
+										"{{applicationId}}",
 										"documents"
 									]
 								}
@@ -3798,7 +3848,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/documents/e116833d-6b32-4e08-aeb7-396e650d77cd/metadata",
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}/metadata",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3808,7 +3858,7 @@
 									],
 									"path": [
 										"documents",
-										"e116833d-6b32-4e08-aeb7-396e650d77cd",
+										"{{documentId}}",
 										"metadata"
 									]
 								}
@@ -3867,26 +3917,33 @@
 										{
 											"key": "type",
 											"value": "OTHER",
-											"type": "text"
+											"type": "text",
+											"disabled": true
 										},
 										{
 											"key": "file",
 											"type": "file",
-											"src": "/Users/vaidehi/Downloads/ADP_PayStub.pdf"
+											"src": "/Users/vaidehi/Downloads/ADP_All correct.pdf"
 										},
 										{
 											"key": "status",
 											"value": "SIGNATURE_REQUESTED",
-											"type": "text"
+											"type": "text",
+											"disabled": true
 										},
 										{
 											"key": "applicationId",
-											"value": "be98ab84-d7f6-495d-8b3b-8970bcf55fba",
+											"value": "{{applicationId}}",
 											"type": "text"
 										},
 										{
 											"key": "customFields",
-											"value": "{\"ty\":\"vm\",\"th\":\"dh\"}",
+											"value": "{\"rttyty\":\"trry\",\"drrttf\":\"rt\"}",
+											"type": "text"
+										},
+										{
+											"key": "losType",
+											"value": "Verification_of_Income_Type",
 											"type": "text"
 										}
 									]
@@ -3945,10 +4002,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"exportedTime\": \"2021-01-23T20:07:27+00:00\",\n  \"customFields\": {\n      \"ed\": \"fe\"\n  }\n}"
+									"raw": "{\n  \"exportedTime\": \"2021-01-23T20:07:27+00:00\",\n  \"customFields\": {\n      \"eds\": \"fes\"\n  }\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/documents/39457598-b5b8-48ca-aa16-0f7b87119bbe",
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -3958,7 +4015,7 @@
 									],
 									"path": [
 										"documents",
-										"39457598-b5b8-48ca-aa16-0f7b87119bbe"
+										"{{documentId}}"
 									]
 								}
 							},
@@ -4007,10 +4064,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"userAgent\": \"\"\n}"
+									"raw": "{\n  \"customFields\": {\n        \"fg4f\": \"re4t\"}\n}"
 								},
 								"url": {
-									"raw": "https://api.sandbox.centrio.com/parties/9c8eded4-7cdf-4637-813a-2aa5946f68e6",
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}",
 									"protocol": "https",
 									"host": [
 										"api",
@@ -4020,7 +4077,7 @@
 									],
 									"path": [
 										"parties",
-										"9c8eded4-7cdf-4637-813a-2aa5946f68e6"
+										"{{partyId}}"
 									]
 								}
 							},
