@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021 - Present. Blend Labs, Inc. All rights reserved
+# Blend Confidential - Restricted
+#
 openapi: "3.0.0"
 
 x-headers:
@@ -680,7 +684,7 @@ paths:
                   type: string
                   description: Unique identifier to determine assignment in construction or branch banking scenarios
                 archivedStatus:
-                  $ref: '#/components/schemas/ArchivedStatusSchema'
+                  $ref: '#/components/schemas/ArchiveStatusSchema'
             example:
               losId: losId1
               crmId: crmId1
@@ -1365,7 +1369,7 @@ paths:
       parameters:
         - in: query
           name: cursor
-          description: An opaque string used for pagination, pass the cursor back to start at this position
+          description: An opaque string used for pagination, pass the cursor back to start at this position. Note that if you change any of the query parameters you used in the initial request, the cursor will be invalid and will not return the next page of results.
           schema:
             type: string
             example: biwxNTI0MTcwNDEwMTAwLDI2OTU0N2ZmLWY2NDMtNDA0ZC1hYTQzLTEzOGI2NTA2OTdjMg
@@ -2992,9 +2996,9 @@ MAolJUVPRgo='
                 $ref: '#/components/schemas/InternalServerErrorSchema'
   /packages:
     post:
-      operationId: Post a package(s)
-      summary: Post a package(s)
-      description: Post a package(s) to an application.
+      operationId: Post a package
+      summary: Post a package
+      description: Post a package to an application.
       tags:
         - Packages
       requestBody:
@@ -3013,10 +3017,9 @@ MAolJUVPRgo='
               schema:
                 type: object
                 properties:
-                  packages:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PackageResponseSchema'
+                  _id:
+                    type: string
+                    example: '1530f84b-c2a1-4cab-b225-vd720687d243'
         400:
           description: Bad Request
           content:
@@ -3066,12 +3069,9 @@ MAolJUVPRgo='
           content:
             application/json; charset=utf-8:
               schema:
-                type: object
-                properties:
-                  packages:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PackageResponseSchema'
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackageResponseSchema'
         400:
           description: Bad Request
           content:
@@ -3139,7 +3139,7 @@ MAolJUVPRgo='
           schema:
             type: string
           description: Package UUID
-          example: '9250f84b-c2a1-4cab-b225-vj720685d221'
+          example: '2d0c89e4-0247-45e6-9f77-ab00d1d74ac0'
       requestBody:
         description: Update package body
         content:
@@ -3281,7 +3281,7 @@ MAolJUVPRgo='
     post:
       operationId: Post Follow-Up
       summary: Add a Follow-Up to an Application
-      description: Create a follow-up on a specific application.
+      description: Create a follow-up for an applicant on a specific application.
       tags:
         - Follow-Ups
       requestBody:
@@ -4111,11 +4111,6 @@ MAolJUVPRgo='
                 email:
                   type: string
                   example: 'johnhernandez@mail.com'
-                type:
-                  type: string
-                  description: ENUM describing the type of Party
-                  enum: ['OTHER', 'SETTLOR', 'SPOUSE', 'TITLE_HOLDER', 'COBORROWER']
-                  example: 'SPOUSE'
                 verificationData:
                   $ref: '#/components/schemas/VerificationDataSchema'
                 taxpayerIdentifier:
@@ -6186,6 +6181,108 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
+  /close/closings/{id}/pre-closing-documents:
+    put:
+      operationId: Put Pre-closing Documents
+      summary: Add or Update Draft Pre-closing Documents
+      description: Adds draft pre-closing documents to a closing or updates their document type if it has changed since their last addition. After successful completion of this request, the document references that were added to this closing will have a `closingDesignation` of `DRAFT_PRE_CLOSING` and a `sourceType` of `LENDER`. In addition, any pre-closing document references with a `sourceType` of `LENDER` that were previously sent to the settlement agent using the `POST close/closings/{id}/pre-closing-documents/send` endpoint will be automatically duplicated with a `closingDesignation` of `DRAFT_PRE_CLOSING`.
+      tags:
+        - Close
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Closing ID
+          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreClosingDocumentsPutRequest'
+      responses:
+        200:
+          description: The pre-closing documents have been added or updated.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ClosingNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /close/closings/{id}/pre-closing-documents/send:
+    post:
+      operationId: Post Pre-Closing Documents Send
+      summary: Send or Re-Send Pre-Closing Documents
+      description: Moves any pre-closing documents out of a draft state and sends them to the settlement agent.
+      tags:
+        - Close
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Closing ID
+          example: '50557b61-c4ec-4639-9781-a5efe5d29946'
+      responses:
+        200:
+          description: The pre-closing documents have been set and sent to the settlement agent assigned to the loan.
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        404:
+          description: Not Found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ClosingNotFoundError'
+        429:
+          description: Rate Limited
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/RateLimitedErrorSchema'
+        500:
+          description: Internal server error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
 
 components:
   securitySchemes:
@@ -6242,7 +6339,7 @@ components:
     DocumentType:
       type: string
       description: Blend document type
-      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER', 'CLOSING_PACKAGE', 'PROMISSORY_NOTE', 'DEED_OF_TRUST', 'TITLE_DOCUMENT', 'CLOSING_SETTLEMENT_ONLY']
+      enum: ['LOE_PUBLIC_RECORD:BANKRUPTCY', 'LOE_PUBLIC_RECORD:TAX_LIEN', 'LOE_PUBLIC_RECORD:JUDGMENT', 'LOE_LARGE_DEPOSITS:TRANSFER', 'LOE_LARGE_DEPOSITS:SALE_OF_ASSET', 'LOE_LARGE_DEPOSITS:INCOME', 'LOE_LARGE_DEPOSITS:GIFT', 'LOE_LARGE_DEPOSITS:OTHER', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'IRS1040', 'IRS1041', 'IRS1120', 'IRS1120_S', 'LLC_BTR_DOC', 'IRSW2', 'CRAT4', '1003', '4506t', 'TAX_TRANSCRIPT', 'DOCUSIGN_CERT_OF_COMP', 'PAY_STUB', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'INSURANCE_AGENT_CONTACT_INFO', 'PURCHASE_AGREEMENT', 'OTHER_DISCLOSURES', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RETIREMENT_ACCOUNT_STATEMENT', 'SOCIAL_SECURITY_AWARD_LETTER', 'TRUST_AGREEMENT', 'VERIFICATION_OF_EMPLOYMENT', 'VERIFICATION_OF_EMPLOYMENT_REVERIFY', 'VERIFICATION_OF_EMPLOYMENT_RETRIEVED', 'VERIFICATION_OF_INCOME', 'PENSION_AWARD_LETTER', 'ANNUITY_AWARD_LETTER', 'DEFERRED_COMPENSATION_AWARD_LETTER', 'VERIFICATION_OF_MORTGAGE_OR_RENT', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_MORTGAGE', 'RETIREMENT_LIQUIDITY_TERMS', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'LETTER_OF_EXPLANATION:SHORT_SALE', 'PROPERTY_TAX_BILL', 'MORTGAGE_STATEMENT', 'BORROWER_CONSENT_FORM', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'APPRAISAL_WAIVER', 'INTENT_TO_PROCEED', 'NATIONAL_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'MARRIAGE_CERTIFICATE', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'CONDOMINIUM_OCCUPANCY_CERTIFICATE', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'BANK_DEPOSIT_SLIP', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'CREDIT_REPORT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'APPRAISAL_REPORT_SINGLE FAMILY', 'APPRAISAL_REPORT_2_-_4_UNIT', 'APPRAISAL_REPORT_MANUFACTURED_HOME', 'APPRAISAL_REPORT_COOP', 'APPRAISAL_REPORT_EXTERIOR_ONLY', 'APPRAISAL_REPORT_AVM', 'APPRAISAL_REPORT_RENT_SURVEY', 'APPRAISAL_REPORT_OPERATING_INCOME_SCHEDULE', 'APPRAISAL_REPORT_MARKET_CONDITIONS_ADDENDUM', 'APPRAISAL_REPORT_UPDATE_AND_OR_COMPLETION_REPORT', 'APPRAISAL_REPORT_PROPERTY_CONDITION_REPORT', 'APPRAISAL_REPORT_DESK_REVIEW', 'SETTLEMENT_STATEMENT_HUD1', 'VISA', 'PASSPORT', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'DD_214', 'VA_STATEMENT_OF_SERVICE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'CREDIT_AUTHORIZATION', 'CREDIT_CARD_AUTHORIZATION', 'BIRTH_CERTIFICATE', 'INVOICE_UTILITY_BILL', 'ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'POWER_OF_ATTORNEY', 'RENTAL_AGREEMENT', 'RENTAL_SECURITY_DEPOSIT', 'VERIFICATION_OF_EMPLOYMENT_LETTER', 'VERIFICATION_OF_EMPLOYMENT_WRITTEN', 'BUSINESS_LICENSE', 'IRS1099', 'K1', 'IRS1065', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'EMPLOYMENT_OFFER_LETTER', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RETIREMENT_AWARD_LETTER', 'VA_CHILD_CARE_CERTIFICATE', 'VA_AWARD_LETTER', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'CHILD_SUPPORT_INCOME', 'ALIMONY_INCOME', 'CHILD_SUPPORT_LIABILITY', 'ALIMONY_LIABILITY', 'GENERATED_ASSET_STATEMENT', 'ACHDEBIT_AUTHORIZATION', 'GIFT_LETTER', 'PROOF_OF_LIQUIDATION', 'CREDIT_REPORT_NON_TRADITIONAL', 'CREDIT_SUPPLEMENT', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'FRAUD_ALERT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'JUDGMENT', 'COSIGNED_LIABILITY', 'PURCHASE_AGREEMENT_ADDENDUM', 'HOME_INSPECTION_REPORT', 'PEST_INSPECTION_REPORT', 'ROOF_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'EARNEST_MONEY_DEPOSIT', 'FLOOD_HAZARD_NOTICE', 'FLOOD_CERTIFICATION', 'TAX_CERTIFICATE', 'AMENDATORY_CLAUSE', 'PAYOFF_STATEMENT', 'CLOSING_PROTECTION_LETTER', 'SCHEDULE_OF_REAL_ESTATE', 'BORROWER_CERTIFICATION', 'OCCUPANCY_CERTIFICATION', 'TRUTH_IN_LENDING', 'GOOD_FAITH_ESTIMATE', 'ESCROW_WAIVER', 'LOAN_ESTIMATE', 'CLOSING_DISCLOSURE', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'HUD_VA_ADDENDUM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'MORTGAGE_INSURANCE', 'NET_TANGIBLE_BENEFIT', 'NOTE', 'HOA_BILL', 'ARTICLES_OF_INCORPORATION', 'BYLAWS_OPERATING_AGREEMENT', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'DISCLOSURES_TRACKING_REPORT', 'ENERGY_EFFICIENT_MORTGAGE_WORKSHEET', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'FAIR_LENDING_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'RATE_LOCK_AGREEMENT', 'BOND_CERTIFICATE', 'CUSTOMER_IDENTIFICATION_VERIFICATION', 'VERIFICATION_OF_SSN', 'RESIDUAL_INCOME_LETTER', 'OTHER', 'DU_UNDERWRITING_FINDINGS', 'DU_UNDERWRITING_LOG', 'DU_UNDERWRITING_DEFAULTS', 'OTHER_APPLICATION', 'PRE_QUALIFICATION_LETTER', 'APPRAISAL', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'COMPLIANCE_REPORT', 'LOAN_SNAPSHOT', 'HMDA_REPORT', 'ATTACHMENT', 'LETTER_OF_EXPLANATION:_GENERATED_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_GENERATED_ADDRESS_VERIFICATION', 'GENERATED_GIFT_LETTER', 'LETTER_OF_EXPLANATION:_GENERATED_LATE_PAYMENT', 'LETTER_OF_EXPLANATION:_GENERATED_PUBLIC_RECORD', 'LETTER_OF_EXPLANATION:_GENERATED_LARGE_DEPOSIT', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MEDICAL_LICENSE_DIPLOMA', 'NEAREST_LIVING_RELATIVE', 'EMPLOYMENT_CONTRACT', 'GENERATED_COST_WORKSHEET', 'FNMA_NETPAY_REPORT_ASSETS', 'FNMA_NETPAY_REPORT_INCOME', 'FNMA_NETPAY_BORROWERS_REQUEST', 'FNMA_NETPAY_GSE_API_XML', 'KNOW_YOUR_CUSTOMER', 'CLOSING_PACKAGE', 'PROMISSORY_NOTE', 'DEED_OF_TRUST', 'TITLE_DOCUMENT', 'CLOSING_SETTLEMENT_ONLY', 'PRELIMINARY_CLOSING_DOCUMENTS', 'SIGNED_CLOSING_DOCUMENTS', 'TRAILING_DOCUMENTS', 'OTHER_CLOSING_DOCUMENTS']
     ApplicationExperienceType:
       type: string
       description: ENUM describing the type of borrower experience for this application
@@ -6253,6 +6350,10 @@ components:
       description: ENUM describing the solution sub type of home lending applications
       enum: ['CANADA_MORTGAGE', 'HELOAN', 'HELOC', 'MORTGAGE', 'MORTGAGE_MODIFICATION', 'OTHER']
       example: 'MORTGAGE'
+    ArchiveStatusSchema:
+      type: boolean
+      description: If set to true, will archive the referenced application
+      example: false
     ArchivedStatusSchema:
       type: boolean
       description: True if the application has been archived
@@ -6960,7 +7061,7 @@ components:
         type:
           type: string
           description: ENUM describing the type of property to which the application pertains
-          enum: ['SINGLE_FAMILY', 'CONDOMINIUM', 'TOWNHOUSE', 'TWO_TO_FOUR_UNIT_PROPERTY', 'COOPERATIVE']
+          enum: ['SINGLE_FAMILY', 'CONDOMINIUM', 'TOWNHOUSE', 'TWO_TO_FOUR_UNIT_PROPERTY', 'COOPERATIVE', 'MANUFACTURED_OR_MOBILE_HOME']
         usageType:
           $ref: '#/components/schemas/PropertyUsageType'
         searchType:
@@ -7132,11 +7233,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7169,11 +7270,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7200,11 +7301,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7225,11 +7326,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7256,11 +7357,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7281,11 +7382,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7321,11 +7422,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7348,11 +7449,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7381,11 +7482,11 @@ components:
               - pageNumber
             properties:
               xPosition:
-                type: number
+                type: integer
               yPosition:
-                type: number
+                type: integer
               pageNumber:
-                type: number
+                type: integer
               tabLabel:
                 type: string
               name:
@@ -7426,11 +7527,11 @@ components:
                     - pageNumber
                   properties:
                     xPosition:
-                      type: number
+                      type: integer
                     yPosition:
-                      type: number
+                      type: integer
                     pageNumber:
-                      type: number
+                      type: integer
                     tabId:
                       type: string
                     value:
@@ -7781,7 +7882,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccountApplicationPhoneNumberSchema'
-        identityVerificationStatus:
+        identityVerification:
           $ref: '#/components/schemas/IdentityVerificationSchema'
         identityDocumentation:
           $ref: '#/components/schemas/IdentityDocumentationSchema'
@@ -7926,8 +8027,8 @@ components:
           $ref: '#/components/schemas/NameSchema'
         relation:
           type: string
-          description: Authorized User birth date, UNIX timestamp (milliseconds)
-          example: '1537222722246'
+          description: Beneficiary relationship
+          example: 'Husband'
         allocation:
           type: number
           description: Percentage allocated to the given beneficiary
@@ -8033,9 +8134,9 @@ components:
           description: Additional text describing account
           example: 'Premium Checking Account'
         accountNumber:
-          type: number
+          type: string
           description: Account number
-          example: 33112244
+          example: '33112244'
         routingNumber:
           type: string
           description: Routing number
@@ -8063,9 +8164,9 @@ components:
           description: Additional text describing account
           example: 'Premium Checking Account'
         accountNumber:
-          type: number
+          type: string
           description: Account number
-          example: 33112244
+          example: '33112244'
         routingNumber:
           type: string
           description: Routing number
@@ -8235,7 +8336,7 @@ components:
           example: 'CORE_DOWN_FOR_MAINTENANCE'
         failureMessage:
           type: string
-          description: Message explaining why the integration event failed
+          description: Message explaining why the integration event failed (It's only displayed when a failureCode is not provided)
           example: 'User already exists in the core'
     PackageBorrowerMetadataSchema:
       type: object
@@ -10281,7 +10382,7 @@ components:
     PostDocumentType:
       type: string
       description: Valid document types for creating a follow-up of type 'DOCUMENT_REQUEST'
-      enum: ['1003', '4506t', 'ACHDEBIT_AUTHORIZATION', 'ADDRESS_VERIFICATION', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'ALIMONY_INCOME', 'ALIMONY_LIABILITY', 'APPRAISAL', 'APPRAISAL_WAIVER', 'ARTICLES_OF_INCORPORATION', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'BANK_DEPOSIT_SLIP', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'BIRTH_CERTIFICATE', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'BORROWER_CERTIFICATION', 'BORROWER_CONSENT_FORM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'BUSINESS_LICENSE', 'BYLAWS_OPERATING_AGREEMENT', 'CHILD_SUPPORT_INCOME', 'CHILD_SUPPORT_LIABILITY', 'CLOSING_DISCLOSURE', 'COSIGNED_LIABILITY', 'CREDIT_CARD_AUTHORIZATION', 'CREDIT_REPORT', 'DD_214', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'EARNEST_MONEY_DEPOSIT', 'EMPLOYMENT_CONTRACT', 'EMPLOYMENT_OFFER_LETTER', 'ESCROW_WAIVER', 'FAIR_LENDING_NOTICE', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'FLOOD_CERTIFICATION', 'FLOOD_HAZARD_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'GENERATED_ASSET_STATEMENT', 'GIFT_LETTER', 'GOOD_FAITH_ESTIMATE', 'HOA_BILL', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'HOME_INSPECTION_REPORT', 'HUD_VA_ADDENDUM', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'INSURANCE_AGENT_CONTACT_INFO', 'INTENT_TO_PROCEED', 'INVOICE_UTILITY_BILL', 'IRS1041', 'IRS1065', 'IRS1099', 'IRS1120', 'IRS1120_S', 'JUDGMENT', 'K1', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'LLC_BTR_DOC', 'LOAN_ESTIMATE', 'MARRIAGE_CERTIFICATE', 'MEDICAL_LICENSE_DIPLOMA', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MORTGAGE_STATEMENT', 'NATIONAL_IDENTIFICATION', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'NEAREST_LIVING_RELATIVE', 'NOTE', 'OCCUPANCY_CERTIFICATION', 'OTHER', 'PASSPORT', 'PAYOFF_STATEMENT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PEST_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'POWER_OF_ATTORNEY', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'PROOF_OF_LIQUIDATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'PROPERTY_TAX_BILL', 'PURCHASE_AGREEMENT', 'PURCHASE_AGREEMENT_ADDENDUM', 'RATE_LOCK_AGREEMENT', 'RENTAL_AGREEMENT', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RENTAL_SECURITY_DEPOSIT', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RESIDUAL_INCOME_LETTER', 'RETIREMENT_ACCOUNT_STATEMENT', 'RETIREMENT_AWARD_LETTER', 'RETIREMENT_LIQUIDITY_TERMS', 'ROOF_INSPECTION_REPORT', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'SETTLEMENT_STATEMENT_HUD1', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'TAX_TRANSCRIPT', 'TRUST_AGREEMENT', 'VA_AWARD_LETTER', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'VA_STATEMENT_OF_SERVICE', 'VERIFICATION_OF_MORTGAGE', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_SSN', 'VISA']
+      enum: ['1003', '4506t', 'ACHDEBIT_AUTHORIZATION', 'ADDRESS_VERIFICATION', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'ALIMONY_INCOME', 'ALIMONY_LIABILITY', 'APPRAISAL', 'APPRAISAL_WAIVER', 'ARTICLES_OF_INCORPORATION', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'BANK_DEPOSIT_SLIP', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'BIRTH_CERTIFICATE', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'BORROWER_CERTIFICATION', 'BORROWER_CONSENT_FORM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'BUSINESS_LICENSE', 'BYLAWS_OPERATING_AGREEMENT', 'CHILD_SUPPORT_INCOME', 'CHILD_SUPPORT_LIABILITY', 'CLOSING_DISCLOSURE', 'COSIGNED_LIABILITY', 'CREDIT_CARD_AUTHORIZATION', 'CREDIT_REPORT', 'DD_214', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'EARNEST_MONEY_DEPOSIT', 'EMPLOYMENT_CONTRACT', 'EMPLOYMENT_OFFER_LETTER', 'ESCROW_WAIVER', 'FAIR_LENDING_NOTICE', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'FLOOD_CERTIFICATION', 'FLOOD_HAZARD_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'GENERATED_ASSET_STATEMENT', 'GIFT_LETTER', 'GOOD_FAITH_ESTIMATE', 'HOA_BILL', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'HOME_INSPECTION_REPORT', 'HUD_VA_ADDENDUM', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'INSURANCE_AGENT_CONTACT_INFO', 'INTENT_TO_PROCEED', 'INVOICE_UTILITY_BILL', 'IRS1041', 'IRS1065', 'IRS1099', 'IRS1120', 'IRS1120_S', 'JUDGMENT', 'K1', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'LETTER_OF_EXPLANATION:SHORT_SALE', 'LLC_BTR_DOC', 'LOAN_ESTIMATE', 'MARRIAGE_CERTIFICATE', 'MEDICAL_LICENSE_DIPLOMA', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MORTGAGE_STATEMENT', 'NATIONAL_IDENTIFICATION', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'NEAREST_LIVING_RELATIVE', 'NOTE', 'OCCUPANCY_CERTIFICATION', 'OTHER', 'PASSPORT', 'PAYOFF_STATEMENT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PEST_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'POWER_OF_ATTORNEY', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'PROOF_OF_LIQUIDATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'PROPERTY_TAX_BILL', 'PURCHASE_AGREEMENT', 'PURCHASE_AGREEMENT_ADDENDUM', 'RATE_LOCK_AGREEMENT', 'RENTAL_AGREEMENT', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RENTAL_SECURITY_DEPOSIT', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RESIDUAL_INCOME_LETTER', 'RETIREMENT_ACCOUNT_STATEMENT', 'RETIREMENT_AWARD_LETTER', 'RETIREMENT_LIQUIDITY_TERMS', 'ROOF_INSPECTION_REPORT', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'SETTLEMENT_STATEMENT_HUD1', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'TAX_TRANSCRIPT', 'TRUST_AGREEMENT', 'VA_AWARD_LETTER', 'VA_CHILD_CARE_CERTIFICATE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'VA_STATEMENT_OF_SERVICE', 'VERIFICATION_OF_EMPLOYMENT_LETTER', 'VERIFICATION_OF_MORTGAGE', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_SSN', 'VISA']
     FollowUpComments:
       type: string
       description: Comments displayed to the party on the follow-up
@@ -10456,12 +10557,15 @@ components:
           example: '2020-04-19T02:35:00.789Z'
         envelopes:
           type: array
+          minItems: 1
           description: An envelope describes the signing strategy and the recipient assignment within the package.
           items:
             anyOf:
             - $ref: '#/components/schemas/ESignEnvelopePostSchema'
             - $ref: '#/components/schemas/WetsignEnvelopePostSchema'
+            - $ref: '#/components/schemas/ReviewEnvelopePostSchema'
     WetsignEnvelopePostSchema:
+      title: "WET_SIGN"
       type: object
       required:
         - providerType
@@ -10476,6 +10580,7 @@ components:
           items:
             $ref: '#/components/schemas/WetsignEnvelopesRecipientPostSchema'
     ESignEnvelopePostSchema:
+      title: "ESIGN"
       type: object
       required:
         - providerType
@@ -10489,6 +10594,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ESignEnvelopesRecipientPostSchema'
+    ReviewEnvelopePostSchema:
+      title: 'REVIEW'
+      type: object
+      required:
+        - providerType
+        - recipients
+      properties:
+        providerType:
+          type: string
+          enum:
+            - REVIEW
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewEnvelopeRecipientPostSchema'
     EnvelopesRecipientPostSchema:
       type: object
       required:
@@ -10512,7 +10632,14 @@ components:
         - type: object
       properties:
         metadata:
-          $ref: '#/components/schemas/WetsignMetadataSchema'
+          $ref: '#/components/schemas/WetsignPostMetadataSchema'
+    ReviewEnvelopeRecipientPostSchema:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopesRecipientPostSchema'
+        - type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/ReviewPostMetadataSchema'
     EnvelopesRecipientResponseSchema:
       type: object
       required:
@@ -10536,10 +10663,11 @@ components:
         metadata:
           oneOf:
             - $ref: '#/components/schemas/EsignMetadataSchema'
-            - $ref: '#/components/schemas/WetsignMetadataSchema'
+            - $ref: '#/components/schemas/WetsignResponseMetadataSchema'
+            - $ref: '#/components/schemas/ReviewResponseMetadataSchema'
           example:
             doclink: https://esign-portal.com
-    WetsignMetadataSchema:
+    WetsignPostMetadataSchema:
       type: object
       required:
         - documentIds
@@ -10551,6 +10679,32 @@ components:
             type: string
             example: '9250f84b-c2a1-4cab-b265-bd720485c361'
           example: ['9250f84b-c2a1-4cab-b265-bd720485c361']
+    WetsignResponseMetadataSchema:
+      allOf:
+        - $ref: '#/components/schemas/WetsignPostMetadataSchema'
+        - type: object
+      required:
+        - documentStatus
+      properties:
+        documentStatus:
+          type: object
+          description: Object showing the status for each document. The keys are the documentIds and the values are the statuses.
+          additionalProperties:
+            type: string
+            enum: ['HAS_NOT_VIEWED', 'VIEWED', 'SIGNED']
+          example:
+            9250f84b-c2a1-4cab-b265-bd720485c361: 'VIEWED'
+            cc730ed3-0d46-493d-bd85-8cddc60e45d1: 'SIGNED'
+        viewedAt:
+          type: string
+          description: ISO timestamp
+        viewedIP:
+          type: string
+        signedAt:
+          type: string
+          description: ISO timestamp
+        signedIP:
+          type: string
     EsignMetadataSchema:
       type: object
       required:
@@ -10867,6 +11021,38 @@ components:
           description: True if the tab is required to be completed by the recipient in Docusign, false if it is optional. Defaults to true.
           default: true
           example: true
+    ReviewPostMetadataSchema:
+      type: object
+      required:
+        - documents
+      properties:
+        documents:
+          type: array
+          items:
+            type: object
+            required:
+              - documentId
+            properties:
+              documentId:
+                type: string
+                description: The Blend UUID returned when uploading a document
+                example: 'b2996a70-a19b-4b7f-973d-3a561e159067'
+    ReviewResponseMetadataSchema:
+      allOf:
+        - $ref: '#/components/schemas/ReviewPostMetadataSchema'
+        - type: object
+      properties:
+        reviewTracking:
+          type: object
+          required:
+            - ip
+            - timestamp
+          properties:
+            ip:
+              type: string
+            timestamp:
+              type: number
+              description: unix timestamp
     PackageResponseSchema:
       type: object
       required:
@@ -10940,6 +11126,8 @@ components:
             * ESIGN: A Docusign integration
 
             * WETSIGN: The recipient downloads the package as a PDF and uploads signed PDFs into Blend
+
+            * REVIEW: The recipient views the documents in Blend's document viewer.
           enum: ['SSO_SAML', 'DIRECT_LINK', 'ESIGN', 'WETSIGN']
           example: 'SSO_SAML'
         signatureRequired:
@@ -11007,7 +11195,7 @@ components:
             closingStatus:
               type: string
               description: The closing status
-              enum: ['DRAFT', 'SENT', 'COMPLETED']
+              enum: ['DRAFT', 'SENT', 'SENT_DAY_OF', 'COMPLETED']
               example: 'COMPLETED'
             lastSentAt:
               type: string
@@ -11017,7 +11205,7 @@ components:
             specialInstructions:
               type: string
               description: Special closing instructions
-              example: 'Hi closing team, have a great day!'
+              example: 'Please wet-sign the Closing Disclosure.'
     ClosingBaseRecord:
       type: object
       description: Base Closing Record
@@ -11137,22 +11325,7 @@ components:
             sourceType:
               $ref: '#/components/schemas/ClosingSourceType'
             closingDesignation:
-              $ref: '#/components/schemas/ClosingDesignation'
-            requireNotarization:
-              type: boolean
-              description: Whether the document requires notarization.
-              default: true
-              example: true
-            signersRequired:
-              type: string
-              enum: ['ALL', 'ANY']
-              description: The signers required for this document.
-              default: 'ALL'
-              example: 'ALL'
-            recipients:
-              type: array
-              items:
-                $ref: '#/components/schemas/ClosingDocumentRecipients'
+              $ref: '#/components/schemas/ClosingDesignationResponse'
     ClosingDocumentRecipients:
       type: object
       required:
@@ -11191,10 +11364,15 @@ components:
       description: The source type
       enum: ['LENDER', 'TITLE']
       example: 'LENDER'
-    ClosingDesignation:
+    ClosingDesignationRequest:
       type: string
-      description: The closing designation
-      enum: ['SIGN_AHEAD', 'DAY_OF', 'NOTE']
+      description: The document closing designation accepted by the API. If `PRE_CLOSING` is provided, then a `sourceType` of `LENDER` is not allowed; it must be `TITLE` to indicate the addition of a pre-closing document by the title/settlement agent.
+      enum: ['SIGN_AHEAD', 'DAY_OF', 'NOTE', 'PRE_CLOSING']
+      example: 'NOTE'
+    ClosingDesignationResponse:
+      type: string
+      description: The document closing designation the API can respond with. `DRAFT_PRE_CLOSING` indicates that the `PUT close/closings/{id}/pre-closing-documents` endpoint had been called before an attempt to call `POST close/closings/{id}/pre-closing-documents/send`.
+      enum: ['SIGN_AHEAD', 'DAY_OF', 'NOTE', 'PRE_CLOSING', 'DRAFT_PRE_CLOSING']
       example: 'NOTE'
     ClosingList:
       type: array
@@ -11215,21 +11393,47 @@ components:
       properties:
         closingType:
           $ref: '#/components/schemas/ClosingType'
-        closingDate:
-          type: string
-          format: date-time
-          description: Closing date. Setting this is equivalent to setting closingStart and closingEnd to the beginning and end of the specified day respectively.
-          example: '2019-10-29T04:25:30.000Z'
         closingStart:
           type: string
           format: date-time
-          description: Closing start timestamp
-          example: '2019-10-29T04:25:30.000Z'
+          description: ISO 8601 datetime when the closing is set to start. This time will dictate when sign-ahead closing documents will be released to borrower(s) for eSign. A timezone offset **MUST** be provided in the date string to ensure sign ahead documents are released accurately for borrower(s), e.g., not a day earlier than expected.
+          example: '2019-10-29T00:00:00-04:00'
         closingEnd:
           type: string
           format: date-time
-          description: Closing end timestamp
-          example: '2019-10-30T04:25:30.000Z'
+          description: ISO 8601 datetime when the closing is set to end. Borrower(s) will not be able to review or eSign closing documents after this time. A timezone offset **MUST** be provided in the date string to ensure closing documents expire at the correct time for borrower(s).
+          example: '2019-10-29T23:59:59-04:00'
+        scheduledCeremonyTime:
+          type: string
+          format: date-time
+          description: ISO 8601 datetime that represents a closing "day", which will be reflected in Settlement Agent Workspace and will be assumed to be the day when a borrower meets with their notary. If this value is not provided, it will have the same value as closingStart. This value should be before closingEnd.
+          example: '2019-10-29T04:00:00-04:00'
+        timezone:
+          type: string
+          format: string
+          description: |
+            IMPORTANT - this field is only used by the browser in the webapp and does not effect the closing start time declared in this request.
+            Additionally, closingStart and closingEnd must include the correct timezone offset.
+
+            For example if you wish to use Central time, the timezone value would be "America/Chicago" and the closingStart or closingDate value must
+            include an offset of "-06:00" during standard time i.e. "2020-12-12T00:00:00-06:00" or "-05:00" during daylight savings time "2021-06-12T00:00:00-05:00"
+
+            Options include:
+
+            "America/New_York" (Eastern time)
+
+            "America/Chicago" (Central time)
+
+            "America/Denver" (Mountain time - day light savings time applicable)
+
+            "America/Phoenix" (Arizona time - day light savings not applicable)
+
+            "America/Los_Angeles" (Pacific time)
+
+            "America/Anchorage" (Alaska time)
+
+            "Pacific/Honolulu" (Hawaii time)
+          example: 'America/New_York'
         closingParties:
           type: array
           description: List of closing parties
@@ -11238,7 +11442,7 @@ components:
         specialInstructions:
           type: string
           description: Special closing instructions
-          example: 'Hi closing team, have a great day!'
+          example: 'Please wet-sign the Closing Disclosure.'
     ClosingDocumentsPutRequest:
       type: object
       required:
@@ -11262,7 +11466,7 @@ components:
         sourceType:
           $ref: '#/components/schemas/ClosingSourceType'
         closingDesignation:
-          $ref: '#/components/schemas/ClosingDesignation'
+          $ref: '#/components/schemas/ClosingDesignationRequest'
         requireNotarization:
           type: boolean
           description: Whether the document requires notarization.
@@ -11278,6 +11482,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ClosingDocumentRecipients'
+    PreClosingDocumentsPutRequest:
+      type: object
+      required:
+        - documents
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreClosingDocumentReferenceRequest'
+    PreClosingDocumentReferenceRequest:
+      type: object
+      description: Reference to a closing document in a pre-closing document request.
+      required:
+        - documentID
+      properties:
+        documentID:
+          type: string
+          description: Blend Document ID
+          example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
     ClosingCreatedResponse:
       type: object
       description: ID of the newly created closing.
