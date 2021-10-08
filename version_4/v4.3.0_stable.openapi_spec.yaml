@@ -6,14 +6,14 @@ openapi: "3.0.0"
 
 x-headers:
   - key: blend-api-version
-    value: 4.1.0
+    value: 4.3.0
   - key: cache-control
     value: no-cache
   - key: Content-Type
     value: application/json
 
 info:
-  version: 4.1.0
+  version: 4.3.0
   title: Blend API
 
 servers:
@@ -70,7 +70,7 @@ paths:
           name: format
           required: true
           description: The requested data format for the response
-          example: 'mismo'
+          example: 'fannie'
           schema:
             type: string
             enum: ['fannie', 'mismo']
@@ -146,6 +146,11 @@ paths:
                   zipCode: '70007'
                   zipCodePlusFour: '1000'
                   countyName: 'Cook County'
+                otherMortgages:
+                  - monthlyPayment: 2500
+                    lienAmount: 150000
+                    willPayOff: false
+                    type: 'CONVENTIONAL'
               loanAmount: 100000
               communityId: '12345'
               leadId: 'lead1'
@@ -177,8 +182,10 @@ paths:
                   state: 'IL'
                   zipCode: '70007'
                   zipCodePlusFour: '1000'
-                  customFields:
-                    fieldName: 'fldValue'
+                customFields:
+                  fieldName: 'fldValue'
+                customMetadata:
+                  fieldName: 'fldValue'
       responses:
         200:
           description: New Application
@@ -215,6 +222,9 @@ paths:
                   customFields:
                     $ref: '#/components/schemas/CustomFieldsObject'
                     example: {}
+                  customMetadata:
+                    $ref: '#/components/schemas/CustomFieldsObject'
+                    example: {}
               example:
                 id: 'aa9fdaa2-7bf3-4411-a836-c2a46117f5c3'
                 solutionSubType: 'MORTGAGE'
@@ -226,7 +236,10 @@ paths:
                     lastName: 'Williams'
                     suffixName: 'III'
                   type: 'BORROWER'
+                  customFields: { }
+                  customMetadata: { }
                 customFields: {}
+                customMetadata: {}
         400:
           description: Invalid Request
           content:
@@ -696,6 +709,11 @@ paths:
                       $ref: '#/components/schemas/PartialAddressSchema'
                     usageType:
                       $ref: '#/components/schemas/PropertyUsageType'
+                    otherMortgages:
+                      type: array
+                      description: Other mortgages on the subject property (only relevant for refinances)
+                      items:
+                        $ref: '#/components/schemas/OtherMortgageSchema'
                 loanAmount:
                   allOf:
                     - $ref: '#/components/schemas/LoanAmount'
@@ -710,7 +728,7 @@ paths:
                   type: string
                   description: Unique identifier to determine assignment in construction or branch banking scenarios
                 archivedStatus:
-                  $ref: '#/components/schemas/ArchiveStatusSchema'
+                  $ref: '#/components/schemas/ArchivedStatusSchema'
                 realEstateAgentNotificationConsentGiven:
                   type: boolean
                   description: If set to true, real estate agents assigned to the application will receive application update notifications
@@ -725,10 +743,12 @@ paths:
                   enum: ['CONVENTIONAL', 'FHA', 'LOCAL_AGENCY', 'OTHER', 'PUBLIC_AND_INDIAN_HOUSING', 'STATE_AGENCY', 'USDARURAL_DEVELOPMENT', 'VA']
                 appSource:
                   type: string
-                  description: ID corresponding to a unique marketing campaign
+                  description: The tag corresponding to a marketing campaign. This identifier can be used to gauge which links are most effective within certain campaigns.
                   example: 'ORGANIC_LEAD'
                 customFields:
                   $ref: '#/components/schemas/CustomFields'
+                customMetadata:
+                  $ref: '#/components/schemas/CustomMetadata'
             example:
               losId: losId1
               crmId: crmId1
@@ -740,6 +760,11 @@ paths:
                   state: 'CA'
                   zipCode: '94108'
                   countyName: 'San Francisco'
+                otherMortgages:
+                  - monthlyPayment: 2500
+                    lienAmount: 150000
+                    willPayOff: false
+                    type: 'CONVENTIONAL'
               tridTriggeredDate: '2018-10-03T20:07:27+00:00'
               estimatedClosingDate: '2019-06-02T00:00:00.000Z'
               communityId: '12345'
@@ -748,6 +773,8 @@ paths:
               appSource: 'ORGANIC_LEAD'
               realEstateAgentNotificationConsentGiven: true
               customFields:
+                fieldName: 'fldValue'
+              customMetadata:
                 fieldName: 'fldValue'
       responses:
         200:
@@ -818,6 +845,7 @@ paths:
                   downloadUrl: https://blend-borrower-staging.sandbox.centrio.com/v1/documents/89968249-7cb8-42e3-b847-85bae7027281
                   created: '2021-01-14T20:17:20.127Z'
                   customFields: {}
+                  customMetadata: {}
                   lastExportedAt:
                   applicationId: 70e7df4a-29d8-4f0d-90cd-f4604e45e0b5
                   partyIds:
@@ -898,6 +926,8 @@ paths:
                   taxpayerIdentifier:
                     type: SOCIAL_SECURITY_NUMBER
                     value: '000113933'
+                  customFields: {}
+                  customMetadata: {}
                 - id: 7ee059cc-1815-4c6b-92d8-a650579102a6
                   applicationId: 70e7df4a-29d8-4f0d-90cd-f4604e45e0b5
                   losPartyId: losParty2
@@ -912,6 +942,8 @@ paths:
                     status: Pending
                   phoneNumbers: []
                   relationship: {}
+                  customFields: {}
+                  customMetadata: {}
         400:
           description: Invalid Request
           content:
@@ -1522,6 +1554,7 @@ paths:
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
+  /home-lending/applications/employers/reverify:
     post:
       operationId: Post Employers Reverify
       summary: Initiate Reverification of Employers
@@ -1636,6 +1669,7 @@ paths:
                   downloadUrl: https://blend-borrower-staging.sandbox.centrio.com/v1/documents/89968249-7cb8-42e3-b847-85bae7027281
                   created: '2021-01-14T20:17:20.127Z'
                   customFields: {}
+                  customMetadata: {}
                   lastExportedAt:
                   applicationId: 70e7df4a-29d8-4f0d-90cd-f4604e45e0b5
                   partyIds:
@@ -3280,9 +3314,12 @@ MAolJUVPRgo='
           content:
             application/json; charset=utf-8:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PackageResponseSchema'
+                type: object
+                properties:
+                  packages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PackageResponseSchema'
         400:
           description: Bad Request
           content:
@@ -4013,7 +4050,7 @@ MAolJUVPRgo='
               lenders:
                 - id: '9250f84b-c2a1-4cab-b265-bd720685c361'
                   name: 'Ashley Lender'
-                  email: 'ashley.lender@blend.com'
+                  email: 'ashley.lender.new.email@blend.com'
                   permittedSolutionSubTypes: ['MORTGAGE']
                   requireTwoFactorAuth: false
                   loginMethod: 'email'
@@ -4262,7 +4299,7 @@ MAolJUVPRgo='
                   description: Nine-digit home phone number
                   example: '1112223333'
                 currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
+                  $ref: '#/components/schemas/CurrentAddressSchema'
                 econsent:
                   $ref: '#/components/schemas/PostEconsentSchema'
                 losPartyId:
@@ -4274,6 +4311,10 @@ MAolJUVPRgo='
                   example: 'MARRIED'
                 customFields:
                   $ref: '#/components/schemas/CustomFields'
+                customMetadata:
+                  $ref: '#/components/schemas/CustomMetadata'
+                veteranStatus:
+                  $ref: '#/components/schemas/VeteranStatusSchema'
             example:
               applicationId: 4ab61cfd-e4f0-47af-bdfa-06901e2bf180
               name:
@@ -4290,6 +4331,8 @@ MAolJUVPRgo='
               econsent:
                 status: 'Declined'
               customFields:
+                fieldName: 'fldValue'
+              customMetadata:
                 fieldName: 'fldValue'
       responses:
         200:
@@ -4381,7 +4424,7 @@ MAolJUVPRgo='
                   description: Nine-digit home phone number
                   example: '1112223333'
                 currentAddress:
-                  $ref: '#/components/schemas/AddressSchema'
+                  $ref: '#/components/schemas/CurrentAddressSchema'
                 econsent:
                   $ref: '#/components/schemas/PostEconsentSchema'
                 losPartyId:
@@ -4394,6 +4437,11 @@ MAolJUVPRgo='
                 customFields:
                   type: string
                   description: field name of the custom field
+                customMetadata:
+                  type: string
+                  description: field name of the custom metadata
+                veteranStatus:
+                  $ref: '#/components/schemas/VeteranStatusSchema'
             example:
               name:
                 firstName: James
@@ -4410,6 +4458,8 @@ MAolJUVPRgo='
                 ip: '0.0.0.0'
                 date: '2018-08-30T19:31:38.902Z'
               customFields:
+                fieldName: 'fldValue'
+              customMetadata:
                 fieldName: 'fldValue'
       responses:
         200:
@@ -5461,7 +5511,7 @@ MAolJUVPRgo='
               schema:
                 type: object
                 properties:
-                  documents:
+                  followups:
                     description: An array of followups
                     type: array
                     items:
@@ -5522,7 +5572,7 @@ MAolJUVPRgo='
               schema:
                 type: object
                 properties:
-                  users:
+                  pabActivities:
                     description: An array of PAB Activities
                     type: array
                     items:
@@ -5537,6 +5587,310 @@ MAolJUVPRgo='
                     example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
         400:
           description: Invalid Request
+  /reporting/deposit-account-applications:
+    get:
+      tags:
+        - Reporting
+      description: Return a paginated list of Deposit Account Applications
+      summary: Retrieve Deposit Account Application Data
+      operationId: Get Deposit Account Applications
+      parameters:
+        - name: applicationId
+          in: query
+          required: false
+          description: Gets data for the specific Application UUID entered.
+          schema:
+            type: string
+          example: '6afa5110-342b-43bc-9304-d24f5e4015cc'
+        - name: appSourceMarketingTag
+          in: query
+          required: false
+          description: Gets all applications with the specified appSourceMarketingTag.
+          schema:
+            type: string
+          example: 'google'
+        - name: appLeadSource
+          in: query
+          required: false
+          description: Gets all applications that were created by the specified party type/method. Currently all deposit applications have an appLeadSource of "BORROWER" or null.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appCreatedStartDate
+          in: query
+          required: false
+          description: Gets all applications created on or after this date. Compares to applicationCreatedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appCreatedEndDate
+          in: query
+          required: false
+          description: Gets all applications created on or before this date. Compares to applicationCreatedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: hasActivityBeyondInitialDetailsTask
+          in: query
+          required: false
+          description: If true, returns a list of all applications that have evidence of at least some activity beyond the first application details screen; if false, returns all applications that have no evidence of any activity beyond the first application details screen; if omitted, returns a list of all applications independent of whether there is or is not activity beyond that threshold.
+          schema:
+            type: boolean
+          example: 'true'
+        - name: appSubmittedStartDate
+          in: query
+          required: false
+          description: Gets all applications submitted on or after this date. Compares to applicationSubmittedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appSubmittedEndDate
+          in: query
+          required: false
+          description: Gets all applications submitted on or before this date. Compares to applicationSubmittedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appAutoApprovedStartDate
+          in: query
+          required: false
+          description: Gets all applications with an automated approval decision on or after this date. Compares to firstAutomatedApprovalDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appAutoApprovedEndDate
+          in: query
+          required: false
+          description: Gets all applications with an automated approval decision on or before this date. Compares to firstAutomatedApprovalDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appAutoReferredStartDate
+          in: query
+          required: false
+          description: Gets all applications with an automated referral for manual review on or after this date. Compares to firstAutomatedReferralDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appAutoReferredEndDate
+          in: query
+          required: false
+          description: Gets all applications with an automated referral for manual review on or before this date. Compares to firstAutomatedReferralDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appManuallyApprovedStartDate
+          in: query
+          required: false
+          description: Gets all applications with a manual approval decision on or after this date. Compares to firstManualApprovalDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appManuallyApprovedEndDate
+          in: query
+          required: false
+          description: Gets all applications with a manual approval decision on or before this date. Compares to firstManualApprovalDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appAutoRejectedStartDate
+          in: query
+          required: false
+          description: Gets all applications with an automated rejection decision on or after this date. Compares to firstAutomatedRejectionDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appAutoRejectedEndDate
+          in: query
+          required: false
+          description: Gets all applications with an automated rejection decision on or before this date. Compares to firstAutomatedRejectionDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appManuallyRejectedStartDate
+          in: query
+          required: false
+          description: Gets all applications with a manual rejection decision on or after this date. Compares to firstManualRejectionDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appManuallyRejectedEndDate
+          in: query
+          required: false
+          description: Gets all applications with a manual rejection decision on or before this date. Compares to firstManualRejectionDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: accountBookedStartDate
+          in: query
+          required: false
+          description: Gets all applications where the applied for account(s) were booked to the core banking system on or after this date. Compares to accountBookedToCoreDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: accountBookedEndDate
+          in: query
+          required: false
+          description: Gets all applications where the applied for account(s) were booked to the core banking system on or before this date. Compares to accountBookedToCoreDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: accountFundedStartDate
+          in: query
+          required: false
+          description: Gets all applications where an opening deposit into the newly booked account(s) was made on or after this date. Compares to firstOpeningDepositTransactionSubmittedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: accountFundedEndDate
+          in: query
+          required: false
+          description: Gets all applications where an opening deposit into the newly booked account(s) was made on or before this date. Compares to firstOpeningDepositTransactionSubmittedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appLastUpdatedStartDate
+          in: query
+          required: false
+          description: Gets all applications last updated on or after this date. Compares to applicationLastUpdatedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appLastUpdatedEndDate
+          in: query
+          required: false
+          description: Gets all applications last updated on or before this date. Compares to applicationLastUpdatedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: archived
+          in: query
+          required: false
+          description: If true, returns a list of all applications that have been archived by Blend; if false, returns all applications that have not been archived; if omitted, returns a list of all applications independent of applicationArchivedDatetime field.
+          schema:
+            type: boolean
+          example: 'true'
+        - name: appArchivedStartDate
+          in: query
+          required: false
+          description: Gets all applications archived on or after this date. Compares to applicationArchivedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appArchivedEndDate
+          in: query
+          required: false
+          description: Gets all applications archived on or before this date. Compares to applicationArchivedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: deleted
+          in: query
+          required: false
+          description: If true, returns a list of all applications that have been deleted by the user; if false, returns all applications that have not been deleted; if omitted, return a list of all applications independent of applicationDeletedDatetime field.
+          schema:
+            type: boolean
+          example: 'true'
+        - name: appDeletedStartDate
+          in: query
+          required: false
+          description: Gets all applications deleted on or after this date. Compares to applicationDeletedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appDeletedEndDate
+          in: query
+          required: false
+          description: Gets all applications deleted on or before this date. Compares to applicationDeletedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appPurgedStartDate
+          in: query
+          required: false
+          description: Gets all applications purged on or after this date. Compares to applicationPurgedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: appPurgedEndDate
+          in: query
+          required: false
+          description: Gets all applications purged on or before this date. Compares to applicationPurgedDatetime.
+          schema:
+            type: string
+            format: date
+          example: '2018-08-30T19:31:38.902Z'
+        - name: orderBy
+          in: query
+          required: false
+          description: The timestamp you wish you order the results by. Required if passing in multiple date query parameters.
+          schema:
+            type: string
+            enum: ['applicationCreatedDatetime', 'applicationSubmittedDatetime', 'firstAutomatedReferralDatetime', 'firstAutomatedApprovalDatetime', 'firstManualApprovalDatetime', 'firstAutomatedRejectionDatetime', 'firstManualRejectionDatetime', 'accountBookedToCoreDatetime', 'firstOpeningDepositTransactionSubmittedDatetime', 'applicationLastUpdatedDatetime', 'applicationArchivedDatetime', 'applicationDeletedDatetime', 'applicationPurgedDatetime']
+            example: 'applicationCreatedDatetime'
+        - name: limit
+          in: query
+          required: false
+          description: The number of results to be returned for this API call. Maximum is 10,000.
+          schema:
+            type: integer
+          example: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The cursor to retrieve the next/previous page of results.
+          schema:
+            type: string
+          example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+      responses:
+        200:
+          description: List of paginated Deposit Account Data, with cursors to go to the next or previous set.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  depositAccountApplications:
+                    description: An array of deposit account data
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportingDepositAccountApplicationsSchema'
+                  nextCursor:
+                    description: Cursor to use to get to the next set of deposit account application data
+                    type: string
+                    example: 'biwxNTIzOTk4Njg1NTc5LGRkYWYwNDY5LTdlNTYtNDRjZS05MDE3LTZkM2VhNjk1Mzc2OA'
+                  prevCursor:
+                    description: Cursor to use to get to the previous set of deposit account data
+                    type: string
+                    example: 'cCwxNTIzOTk4NTQ4MTU5LGEwYWNkZTZjLWY1M2MtNGM5NC1iYmM1LWE0M2MyYTY5YjM3Mg'
+        400:
+          description: Invalid status value
   /events:
     get:
       parameters:
@@ -5639,6 +5993,12 @@ MAolJUVPRgo='
             type: string
           description: Event UUID
           example: '9250f84b-c2a1-4cab-b265-bd720685c361'
+        - in: query
+          name: includeData
+          schema:
+            type: boolean
+          description: When true, includes the original event data payload.
+          example: false
       operationId: Get Event
       summary: Get a Specific Event
       description: Get an event and its current status
@@ -5650,7 +6010,7 @@ MAolJUVPRgo='
           content:
             application/json; charset=utf-8:
               schema:
-                $ref: '#/components/schemas/EventSchema'
+                $ref: '#/components/schemas/EventWithDataSchema'
         400:
           description: Invalid event UUID
           content:
@@ -6548,6 +6908,426 @@ MAolJUVPRgo='
             application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/InternalServerErrorSchema'
+  /consumer-lending/applications/{id}:
+    get:
+      operationId: Get consumer lending application data
+      summary: Get consumer lending application data
+      description: Get consumer lending application data in JSON.
+      tags:
+        - Consumer Lending - Applications
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApplicationId'
+          example: 42bd6564-edd6-47a7-a5c6-0deaf5ee23d5
+      responses:
+        200:
+          description: Consumer Lending Application
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ConsumerLendingApplicationSchema'
+                discriminator:
+                  propertyName: id
+              example:
+                id: 563b6780-a0f9-40ec-9ab9-eaf841602927
+                loanIdentifiers:
+                  losId: 9d668c9c-be9b-4305-a690-8f3c9dd136d2
+                  crmId: e6b6e5f6-65ae-4af6-9f39-8bab094f4763
+                  referenceNumber: '34992'
+                loanType: AUTO
+                loanPurposeType: PURCHASE
+                borrowers:
+                  - id: 1e20343f-d8a8-423e-aac1-def4c56a9f99
+                    type: BORROWER
+                    name:
+                      firstName: Betsy
+                      lastName: Borrower
+                    email: scotti+riv@blend.com
+                    phoneNumbers:
+                      - type: HOME
+                        number: 5558302938
+                    birthDate: '1990-11-11T00:00:00.000Z'
+                    ssn: 000-00-0000
+                    citizenshipStatus: US_CITIZEN
+                    residences:
+                      - type: MAILING
+                        address:
+                          streetAddressLine1: 435 East Pete Rose Way
+                          city: Cincinnati
+                          county: Hamilton County
+                          state: OH
+                          zipCode: '45202'
+                      - type: CURRENT
+                        residencyType: LIVING_RENT_FREE
+                        address:
+                          streetAddressLine1: 435 East Pete Rose Way
+                          city: Cincinnati
+                          county: Hamilton County
+                          state: OH
+                          zipCode: '45202'
+                        moveInDate: '2010-05-05T00:00:00.000Z'
+                        residencyDurationYears: 9
+                    ownedProperties: []
+                    employers:
+                      - type: GENERAL_EMPLOYMENT
+                        name: Starbucks
+                        title: Barista
+                        startDate: '2010-01-01T00:00:00.000Z'
+                        monthsOnJob: 123
+                        incomes:
+                          - type: BASE
+                            yearlyIncome: 70000
+                    otherIncomes: []
+                    declarations:
+                      - type: US_CITIZEN
+                        indicator: true
+                      - type: PERMANENT_RESIDENT_ALIEN
+                        indicator: false
+                      - type: NON_PERMANENT_US_RESIDENT
+                        indicator: false
+                  - id: 94c58a6a-2265-4b71-a144-ff9ffc3fa71c
+                    type: COBORROWER
+                    name:
+                      firstName: Bailey
+                      middleName: Frisco
+                      lastName: Dog
+                      suffix: Jr.
+                    email: baileydog1234@blend.com
+                    phoneNumbers:
+                      - type: HOME
+                        number: 2321312323
+                    birthDate: '1990-11-11T00:00:00.000Z'
+                    ssn: 000-00-0000
+                    citizenshipStatus: US_CITIZEN
+                    residences:
+                      - type: MAILING
+                        address:
+                          streetAddressLine1: 3401 South Harbor Boulevard
+                          city: Santa Ana
+                          county: Orange County
+                          state: CA
+                          zipCode: '92704'
+                      - type: CURRENT
+                        residencyType: OWN
+                        address:
+                          streetAddressLine1: 3401 South Harbor Boulevard
+                          city: Santa Ana
+                          county: Orange County
+                          state: CA
+                          zipCode: '92704'
+                        moveInDate: '2010-01-02T00:00:00.000Z'
+                        residencyDurationYears: 10
+                    ownedProperties:
+                      - usageType: INVESTMENT
+                        address:
+                          streetAddressLine1: 343 Austin Street
+                          city: Houston
+                          county: Harris County
+                          state: TX
+                          zipCode: '77002'
+                        monthlyMortgagePayments:
+                          - 875
+                          - 230
+                        mortgageBalance: 21000
+                        grossRentalIncome: 340
+                    employers:
+                      - type: GENERAL_EMPLOYMENT
+                        name: Chipotle
+                        address:
+                          streetAddressLine1: 343 East 1st Street
+                          city: Los Angeles
+                          county: Los Angeles County
+                          state: CA
+                          zipCode: '90012'
+                        title: Manager
+                        startDate: '2017-04-28T00:00:00.000Z'
+                        monthsOnJob: 35
+                        ownership:
+                          ownershipType: null
+                          ownershipPercentage: null
+                        incomes:
+                          - type: BASE
+                            yearlyIncome: 80000
+                    otherIncomes:
+                      - type: ALIMONY
+                        yearlyIncome: 2400
+                        description: ''
+                    declarations:
+                      - type: US_CITIZEN
+                        indicator: true
+                      - type: PERMANENT_RESIDENT_ALIEN
+                        indicator: false
+                      - type: NON_PERMANENT_US_RESIDENT
+                        indicator: false
+                    econsent:
+                      status: Accepted
+                      date: '2021-08-12T13:25:15.902Z'
+                    creditConsent:
+                      status: Accepted
+                      date: '2021-08-12T13:25:15.902Z'
+                    creditConsentSoft:
+                      status: Pending
+                loanAmount: 12500
+                loanTermMonths: 72
+                collaterals: []
+                appSource: AdCampaign_10_15_2021
+                primaryAssignedLoanOfficer:
+                  fullName: Lo Nofficer
+                  branchId: Branch 4
+                  employeeId: Employee 15
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+    patch:
+      operationId: Patch consumer lending application
+      summary: Patch consumer lending application
+      description: Update some properties on a specific consumer lending application.
+      tags:
+        - Consumer Lending - Applications
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApplicationId'
+          example: b8c94013-e344-4d77-b55d-8a8538e69afe
+      requestBody:
+        description: Application Update Body
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                losId:
+                  $ref: '#/components/schemas/LosId'
+                crmId:
+                  $ref: '#/components/schemas/CrmId'
+                referenceNumber:
+                  $ref: '#/components/schemas/ReferenceNumber'
+            example:
+              losId: '9d668c9c-be9b-4305-a690-8f3c9dd136d2'
+              crmId: 'e6b6e5f6-65ae-4af6-9f39-8bab094f4763'
+              referenceNumber: '34992'
+      responses:
+        200:
+          description: Application Updated Successfully
+          ####This is correct. We return an empty body for this route's 200
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /consumer-lending/applications/{id}/documents:
+    get:
+      operationId: Get consumer lending application documents
+      summary: List documents for a consumer lending application
+      description: Get a list of all the uploaded and signature complete documents on a specific application.
+      tags:
+        - Consumer Lending - Applications
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApplicationId'
+          example: b8c94013-e344-4d77-b55d-8a8538e69afe
+      responses:
+        200:
+          description: List of documents
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DocumentSchema'
+              example:
+                documents:
+                  - id: 08ca1e6f-a4c2-4085-9a52-5160a474136b
+                    type: COMPLIANCE_REPORT
+                    name: World - Compliance Report - 060721 61420pm
+                    downloadUrl: 'https://blend-borrower-master-consumer-lending.sandbox.centrio.com/v1/documents/08ca1e6f-a4c2-4085-9a52-5160a474136b'
+                    created: '2021-06-07T18:14:23.326Z'
+                    customFields: {}
+                    customMetadata: {}
+                    lastExportedAt: null
+                    applicationId: 42bd6564-edd6-47a7-a5c6-0deaf5ee23d5
+                    partyIds:
+                      - 96b6b15f-2797-4dec-b176-ed68f842d52e
+
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+  /consumer-lending/applications/{id}/decision:
+    get:
+      operationId: Get application decision
+      summary: Get application decision
+      description: Get decision for a specific application.
+      tags:
+        - Consumer Lending - Applications
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApplicationId'
+          example: b8c94013-e344-4d77-b55d-8a8538e69afe
+      responses:
+        200:
+          description: Application Decision
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ConsumerLendingApplicationDecisionSchema'
+              example:
+                status: "APPROVE"
+                updatedDate: "2021-06-07T21:12:00.451Z"
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
+    post:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/ApplicationId'
+          example: b8c94013-e344-4d77-b55d-8a8538e69afe
+      operationId: Set application decision
+      summary: Set application decision
+      description: Send decision information to Blend
+      tags:
+        - Consumer Lending - Applications
+      requestBody:
+        description: Application Decision Body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ['APPROVE', 'IN_REVIEW', 'DECLINE']
+                  example: 'APPROVE'
+                amount:
+                  type: number
+                  example: 120000
+                apr:
+                  type: number
+                  example: 4.75
+                monthlyPayment:
+                  type: number
+                  example: 1243
+                termMonths:
+                  type: number
+                  example: 120
+                productOffering:
+                  type: string
+                  example: 'Standard HELOC'
+      responses:
+        200:
+          description: Decision Updated Successfully
+          ####This is correct. We return an empty body for this route's 200
+        400:
+          description: Invalid Request
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestErrorSchema'
+        401:
+          description: Invalid Credentials
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/AuthenticationRequiredErrorSchema'
+        403:
+          description: Not Authorized
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/NotAuthorizedErrorSchema'
+        500:
+          description: Unexpected Error
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorSchema'
 
 components:
   securitySchemes:
@@ -6855,6 +7635,16 @@ components:
             format: date-time
             description: UTC Timestamp of signature
             example: '2018-10-03T20:07:27+00:00'
+    DocumentAdditionalEntities:
+      type: object
+      description: Additional entities ids associated with the document
+      properties:
+        entityType:
+          type: array
+          description: Entities ids of a given entity type
+          items:
+            type: string
+            example: '5efd5f3e-b527-4aed-a671-6689d2893683'
     ApplicationRequestPartySchema:
       type: object
       required:
@@ -6880,7 +7670,7 @@ components:
           description: Nine-digit home phone number
           example: '1112223333'
         currentAddress:
-          $ref: '#/components/schemas/AddressSchema'
+          $ref: '#/components/schemas/CurrentAddressSchema'
     IncomeSchema:
       type: object
       required:
@@ -6987,6 +7777,21 @@ components:
           example: 'CURRENT'
         address:
           $ref: '#/components/schemas/AddressSchema'
+        moveInDate:
+          type: string
+          format: date-time
+          description: UTC Timestamp of the move in for current address
+          example: '2018-10-03T20:07:27+00:00'
+    CurrentAddressSchema:
+      allOf:
+      - $ref: "#/components/schemas/AddressSchema"
+      - type: object
+        properties:
+          moveInDate:
+            type: string
+            format: date-time
+            description: UTC Timestamp of the move in for current address
+            example: '2018-10-03T20:07:27+00:00'
     UserAssignmentRequestSchema:
       type: object
       properties:
@@ -7080,6 +7885,10 @@ components:
             $ref: '#/components/schemas/PartyAddressSchema'
         taxpayerIdentifier:
           $ref: '#/components/schemas/TaxpayerIdentifierSchema'
+        customFields:
+          $ref: '#/components/schemas/CustomFields'
+        customMetadata:
+          $ref: '#/components/schemas/CustomMetadata'
     EconsentSchema:
       type: object
       properties:
@@ -7099,6 +7908,13 @@ components:
           example: '8.8.8.8'
     CustomFields:
       type: object
+      description: Custom fields on GET responses for supported resources
+      properties:
+        fieldName:
+          $ref: '#/components/schemas/CustomFieldSchema'
+    CustomMetadata:
+      type: object
+      description: Custom metadata on GET responses for supported resources
       properties:
         fieldName:
           $ref: '#/components/schemas/CustomFieldSchema'
@@ -7114,6 +7930,26 @@ components:
           format: date-time
           description: UTC Timestamp of when the field was created or updated
           example: '2018-08-30T19:31:38.902Z'
+    RequestCustomFields:
+      type: object
+      description: Custom fields on PATCH or POST requests for supported resources
+      example:
+        fieldName_1: 'fieldValue_1'
+        fieldName_2: 'fieldValue_2'
+      additionalProperties:
+        type: string
+        description: value of the field
+        example: 'fldValue'
+    RequestCustomMetadata:
+      type: object
+      description: Custom metadata on PATCH or POST requests for supported resources
+      example:
+        metadataName_1: 'metadataValue_1'
+        metadataName_2: 'metadataValue_2'
+      additionalProperties:
+        type: string
+        description: value of the metadata
+        example: 'metadataValue'
     PostEconsentSchema:
       type: object
       required:
@@ -7146,9 +7982,44 @@ components:
       properties:
         status:
           type: string
-          description: Marital Status
+          description: Veteran Status
           enum: ['NotEligible', 'ActiveDuty', 'NationalGuard', 'Reserves', 'Veteran', 'RetiredDischarged', 'SurvivingSpouse', 'ReserveMemberNeverActivated', 'ReserveNationalGuardNeverActivated', 'None']
           example: 'ActiveDuty'
+    OtherMortgageSchema:
+      type: object
+      properties:
+        creditLimit:
+          type: number
+          description: Credit Limit in dollars and cents
+        creditorName:
+          type: string
+          description: Creditor Name
+        lienAmount:
+          type: number
+          description: Lien Amount
+          example: 200000
+        lienType:
+          type: string
+          enum: ['FIRST', 'SUBORDINATE']
+          description: Lien Type ENUM
+          example: 'FIRST'
+        loanAmount:
+          type: number
+          description: Loan Amount
+          example: 300000
+        monthlyPayment:
+          type: number
+          description: Monthly Payment in dollars and cents
+          example: 1200.47
+        type:
+          type: string
+          description: Mortgage Type
+          enum: ['CONVENTIONAL', 'FHA', 'OTHER', 'USDARURAL_DEVELOPMENT', 'VA']
+          example: 'CONVENTIONAL'
+        willPayOff:
+          type: boolean
+          description: Will pay off this mortgage at or before closing
+          example: true
     VerificationRefIdSchema:
       type: object
       required:
@@ -7225,6 +8096,8 @@ components:
           $ref: '#/components/schemas/EconsentSchema'
         customFields:
           $ref: '#/components/schemas/CustomFields'
+        customMetadata:
+          $ref: '#/components/schemas/CustomMetadata'
     PhoneNumberSchema:
       type: object
       properties:
@@ -7325,6 +8198,10 @@ components:
           $ref: '#/components/schemas/SignerInfoSchema'
         customFields:
           $ref: '#/components/schemas/CustomFields'
+        customMetadata:
+          $ref: '#/components/schemas/CustomMetadata'
+        additionalEntities:
+          $ref: '#/components/schemas/DocumentAdditionalEntities'
     DocumentRequestSchema:
       type: object
       required:
@@ -7370,6 +8247,10 @@ components:
           type: string
           description: field name of the custom field
           example: 'fieldName'
+        customMetadata:
+          type: string
+          description: field name of the custom metadata
+          example: 'metadataName'
     DocumentExportStatusSchema:
       type: object
       properties:
@@ -7443,6 +8324,10 @@ components:
           description: A boolean indicating whether the borrower has opted into using Blend Realty
           type: boolean
           example: false
+        appSource:
+          description: The tag corresponding to a marketing campaign. This identifier can be used to gauge which links are most effective within certain campaigns.
+          type: string
+          example: 'ORGANIC_LEAD'
         createdDate:
           type: string
           format: date-time
@@ -7456,6 +8341,11 @@ components:
           type: string
           format: date-time
           description: UTC timestamp of the application exported time
+          example: '2019-06-02T00:00:00.000Z'
+        preApprovalLetterDatetime:
+          type: string
+          format: date-time
+          description: UTC timestamp of when the Preapproval Letter was generated
           example: '2019-06-02T00:00:00.000Z'
         applicationExperienceType:
           $ref: '#/components/schemas/ApplicationExperienceType'
@@ -7472,7 +8362,7 @@ components:
         applicationSource:
           $ref: '#/components/schemas/ApplicationSourceSchema'
         archivedStatus:
-          $ref: '#/components/schemas/ArchivedStatusSchema'
+          $ref: '#/components/schemas/ArchiveStatusSchema'
         links:
           $ref: '#/components/schemas/ApplicationLinks'
         interestRate:
@@ -7483,6 +8373,11 @@ components:
           type: string
           description: ENUM describing the type of the mortgage
           enum: ['CONVENTIONAL', 'FHA', 'LOCAL_AGENCY', 'OTHER', 'PUBLIC_AND_INDIAN_HOUSING', 'STATE_AGENCY', 'USDARURAL_DEVELOPMENT', 'VA']
+        tridTriggeredDate:
+          type: string
+          format: date-time
+          description: UTC timestamp of when TRID was triggered on the application
+          example: '2019-06-02T00:00:00.000Z'
     PropertySchema:
       type: object
       description: Object storing information about the property corresponding to a home lending application
@@ -7493,7 +8388,7 @@ components:
         type:
           type: string
           description: ENUM describing the type of property to which the application pertains
-          enum: ['SINGLE_FAMILY', 'CONDOMINIUM', 'TOWNHOUSE', 'TWO_TO_FOUR_UNIT_PROPERTY', 'COOPERATIVE', 'MANUFACTURED_OR_MOBILE_HOME']
+          enum: ['SINGLE_FAMILY', 'CONDOMINIUM', 'TOWNHOUSE', 'TWO_TO_FOUR_UNIT_PROPERTY', 'COOPERATIVE','MANUFACTURED_OR_MOBILE_HOME']
         usageType:
           $ref: '#/components/schemas/PropertyUsageType'
         searchType:
@@ -7504,6 +8399,12 @@ components:
           type: number
           description: The property's value in dollars and cents
           example: 100000.50
+        otherMortgages:
+          type: array
+          description: Other mortgages on the subject property (only relevant for refinances)
+          items:
+            $ref: '#/components/schemas/OtherMortgageSchema'
+
     ApplicationSourceSchema:
       description: Identifier of where the application originally came from. Used to trace which system programmatically created an application in Blend when it wasn't initiated by a Lender or a Borrower via Blend's web application.
       type: object
@@ -7578,6 +8479,8 @@ components:
           enum: ['CONVENTIONAL', 'FHA', 'LOCAL_AGENCY', 'OTHER', 'PUBLIC_AND_INDIAN_HOUSING', 'STATE_AGENCY', 'USDARURAL_DEVELOPMENT', 'VA']
         customFields:
           $ref: '#/components/schemas/CustomFields'
+        customMetadata:
+          $ref: '#/components/schemas/CustomMetadata'
     PackageSchema:
       type: object
       required:
@@ -8059,6 +8962,10 @@ components:
           type: string
           description: The UUID of the Lender User in Blend's system. The static identifier that should be used to connect the user's identity across Blend and external integrations.
           example: '9250f84b-c2a1-4cab-b265-bd720685c361'
+        email:
+          type: string
+          description: Lender Email. This can only be updated for SSO users. Note that you must submit a Blend Support request to enable the "Allow SSO lender email updates through API" configuration to enable this field.
+          example: 'ashley.lender.new.email@example.com'
         name:
           type: string
           description: Lender Full Name
@@ -8123,6 +9030,14 @@ components:
           type: string
           description: Lender Full Name
           example: 'Ashley Lender'
+        firstName:
+          type: string
+          description: Lender First Name
+          example: 'Ashley'
+        lastName:
+          type: string
+          description: Lender Last Name
+          example: 'Lender'
         email:
           type: string
           description: Lender Email
@@ -8273,6 +9188,10 @@ components:
           type: boolean
           description: Indicates whether applicant is requesting overdraft privileges
           example: false
+        beneficiariesConsentIndicator:
+          type: boolean
+          description: Indicates whether applicant consented to adding beneficiaries
+          example: false
         approvalStatus:
           type: string
           description: Status of the application approval process.
@@ -8291,6 +9210,24 @@ components:
               $ref: '#/components/schemas/AOReviewerSchema'
             decisioningReviewer:
               $ref: '#/components/schemas/AOReviewerSchema'
+            appSource:
+              type: string
+              description: Identifier of where the application originally came from. Used to trace which system programmatically created an application in Blend when it wasn't initiated by a banker or an applicant via Blend's web application
+              example: "Velocify"
+        associatedApplicationId:
+          type: string
+          description: Application Id of Associated Application from Single App Flow
+          example: '771379ec-f232-450d-b4a1-17d7fc0c3a7e'
+        beneficiaries:
+          type: array
+          description: Beneficiaries collected at application-level.
+          items:
+            $ref: '#/components/schemas/BeneficiarySchema'
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp for when the application is created
+          example: '2019-10-29T04:25:30.000Z'
     ApplicantSchema:
       type: object
       required:
@@ -8309,8 +9246,8 @@ components:
           example: '56632a12-1bd7-4014-8571-cff53c346738'
         type:
           type: string
-          description: Applicant type, primary or secondary
-          enum: ['PRIMARY', 'SECONDARY']
+          description: Applicant type, primary, secondary or minor
+          enum: ['PRIMARY', 'SECONDARY', 'MINOR']
           example: 'PRIMARY'
         email:
           type: string
@@ -8371,6 +9308,20 @@ components:
           description: Applicant marital status
           enum: ['MARRIED', 'SEPARATED', 'UNMARRIED', 'DOMESTIC_PARTNER']
           example: 'MARRIED'
+        citizenshipStatus:
+          type: string
+          description: Applicant citizenship status
+          enum: ['US_CITIZEN', 'PERMANENT_RESIDENT_ALIEN', 'NON_PERMANENT_RESIDENT_ALIEN']
+          example: 'US_CITIZEN'
+        sex:
+          type: string
+          description: Applicant sex
+          enum: ['FEMALE', 'MALE', 'OTHER', 'DO_NOT_WISH_TO_PROVIDE']
+          example: 'FEMALE'
+        customFields:
+          $ref: '#/components/schemas/CustomFields'
+        customMetadata:
+          $ref: '#/components/schemas/CustomMetadata'
     # NOTE: this can inherit from ApplicantSchema via $ref and override 'type' starting with open api 3.1
     RejectedApplicantSchema:
       type: object
@@ -8447,6 +9398,20 @@ components:
           description: Applicant marital status
           enum: ['MARRIED', 'SEPARATED', 'UNMARRIED', 'DOMESTIC_PARTNER']
           example: 'MARRIED'
+        citizenshipStatus:
+          type: string
+          description: Applicant citizenship status
+          enum: ['US_CITIZEN', 'PERMANENT_RESIDENT_ALIEN', 'NON_PERMANENT_RESIDENT_ALIEN']
+          example: 'US_CITIZEN'
+        sex:
+          type: string
+          description: Applicant sex
+          enum: ['FEMALE', 'MALE', 'OTHER', 'DO_NOT_WISH_TO_PROVIDE']
+          example: 'FEMALE'
+        customFields:
+          $ref: '#/components/schemas/CustomFields'
+        customMetadata:
+          $ref: '#/components/schemas/CustomMetadata'
     AOReviewerSchema:
       type: object
       required:
@@ -8567,11 +9532,6 @@ components:
       required:
         - _id
         - type
-        - name
-        - dateOfBirth
-        - socialSecurityNumber
-        - phoneNumbers
-        - addresses
       properties:
         _id:
           type: string
@@ -8582,6 +9542,11 @@ components:
           description: Beneficiary type, primary or contingent
           enum: ['PRIMARY', 'CONTINGENT']
           example: 'PRIMARY'
+        subType:
+          type: string
+          description: Beneficiary sub-type, INDIVIDUAL, TRUST, CHARITY, CHURCH, or FOUNDATION
+          enum: ['INDIVIDUAL', 'TRUST', 'CHARITY', 'CHURCH', 'FOUNDATION']
+          example: 'INDIVIDUAL'
         name:
           description: Beneficiary name
           $ref: '#/components/schemas/NameSchema'
@@ -8595,6 +9560,32 @@ components:
           example: 34.7
         address:
           $ref: '#/components/schemas/AccountApplicationAddressSchema'
+        email:
+          type: string
+          description: Beneficiary email address
+          example: "test@blend.com"
+        dateOfBirth:
+          type: string
+          description: Beneficiary birth date, UNIX timestamp (milliseconds)
+          example: '1537222722246'
+        socialSecurityNumber:
+          type: string
+          description: Beneficiary SSN
+          example: '111224444'
+        entityName:
+          type: string
+          description: Entity name of the given beneficiary (if the beneficiary is not a individual)
+          example: 'MyPerfect Trust'
+        taxpayerIdentificationNumber:
+          type: string
+          description: Taxpayer identification number of the entity (if the beneficiary is not a individual)
+          example: '123456789'
+        phoneNumbers:
+          description: List of phone numbers associated with the given beneficiary
+          type: array
+          items:
+            $ref:
+              '#/components/schemas/AccountApplicationPhoneNumberSchema'
     CreditInternalAccountIdentifiers:
       type: object
       required:
@@ -8699,6 +9690,11 @@ components:
                   type: object
                   description: additional information regarding the latest identity verification evaluation
                   example: { 'evaluationTimestamp': 1602874133242 }
+        type:
+          type: string
+          description: Type of identity verification
+          enum: ['IDV', 'STEP_UP']
+          example: 'IDV'
     FundingAccountSchema:
       type: object
       required:
@@ -8901,7 +9897,7 @@ components:
             properties:
               type:
                 type: string
-                enum: ['ATM', 'DEBIT_CARD']
+                enum: ['ATM', 'DEBIT_CARD', 'PROVISIONAL_CREDIT']
                 description: type of access limit
                 example: 'ATM'
               display:
@@ -8925,6 +9921,14 @@ components:
           type: string
           description: Member number of applicant
           example: '9083409234'
+        coreBankingId:
+          type: string
+          description: Applicant identifier in customer's core banking system
+          example: '9876543210'
+        customFields:
+          $ref: '#/components/schemas/RequestCustomFields'
+        customMetadata:
+          $ref: '#/components/schemas/RequestCustomMetadata'
     IntegrationEventSchema:
       type: object
       required:
@@ -9239,6 +10243,15 @@ components:
           type: string
           description: The current status of the loan application
           example: 'SUBMITTED'
+        los_milestone:
+          type: string
+          description: An optional enumerated field sent by lenders who have shared this data via the home-lending/applications/los-milestones endpoint. Possible values include SUBMITTED. UNDERWRITING, CONDITIONAL_APPROVAL, APPROVED, CLOSING, CLOSED
+          example: 'SUBMITTED'
+        losMilestoneLastUpdatedDatetime:
+          type: string
+          format: date-time
+          description: The UTC timestamp for when an LOS milestone was last posted to Blend via the home-lending/applications/los-milestones
+          example: '2018-07-24T00:42:00+00:00Z'
         firstCreditPulledDatetime:
           type: string
           format: date-time
@@ -9429,6 +10442,8 @@ components:
           example: 'c6dabfb0-8753-4a89-b8f0-af059ef869f7'
         loanId:
           $ref: '#/components/schemas/ApplicationId'
+        loanNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
         partyId:
           $ref: '#/components/schemas/PartyId'
         role:
@@ -9589,6 +10604,8 @@ components:
       properties:
         loanId:
           $ref: '#/components/schemas/ApplicationId'
+        loanNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
         activityId:
           type: string
           description: Activity id
@@ -9618,6 +10635,8 @@ components:
       properties:
         loanId:
           $ref: '#/components/schemas/ApplicationId'
+        loanNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
         datetime:
           type: string
           format: date-time
@@ -9693,6 +10712,8 @@ components:
           $ref: '#/components/schemas/FollowUpId'
         loanId:
           $ref: '#/components/schemas/ApplicationId'
+        loanNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
         loanType:
           type: string
           description: The specific product (Mortgage, HELOAN, HELOC, Auto, etc)
@@ -9783,6 +10804,8 @@ components:
           example: 'c6dabfb0-8753-4a89-b8f0-af059ef869f7'
         loanId:
           $ref: '#/components/schemas/ApplicationId'
+        loanNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
         loanType:
           type: string
           description: The specific product (Mortgage, HELOAN, HELOC, Auto, etc)
@@ -9848,6 +10871,390 @@ components:
           type: string
           description: For desktop underwriting events - what the recommendation is
           example: 'Approve/Eligible'
+    ReportingDepositAccountApplicationsSchema:
+      type: object
+      required:
+        - asOfDatetime
+        - applicationCreatedDatetime
+        - loanId
+        - applicationId
+      properties:
+        asOfDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of when the data in the report was last refreshed.
+          example: '2018-08-24T00:42:00+00:00Z'
+        applicationCreatedDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of when the application was created.
+          example: '2021-06-01T21:35:54.000Z'
+        applicationId:
+          $ref: '#/components/schemas/ApplicationId'
+        applicationNumber:
+          type: string
+          description: Application number in displayed the Blend Workspace.
+          example: '123456'
+        leadSource:
+          type: string
+          description: Type of party that created the application, either "BORROWER" (i.e. the applicant) or "LENDER".
+          example: 'BORROWER'
+        appSourceMarketingTag:
+          type: string
+          description: Marketing identifier of the top-of-funnel campaign to which the application should be attributed.
+          example: 'google'
+        primaryAssignedReviewerUserId:
+          type: string
+          description: Blend user ID of the application's primary assigned lender-user.
+          example: '7b7485d4-15db-4172-88e5-1c92f11b9f67'
+        primaryAssignedReviewerFullName:
+          type: string
+          description: Full name in the primary assigned reviewer's user profile.
+          example: 'Leonardo da Vinci'
+        primaryAssignedReviewerEmail:
+          type: string
+          description: Email address of the primary assigned reviewer.
+          example: 'leo@renaissance.com'
+        primaryAssignedReviewerBranchId:
+          type: string
+          description: Branch ID in the primary assigned reviewer's user profile.
+          example: 'Old Italy'
+        primaryAssignedReviewerEmployeeId:
+          type: string
+          description: Employee ID in the primary assigned reviewer's user profile.
+          example: '4555'
+        primaryAssignedReviewerNmlsId:
+          type: string
+          description: Nationwide Multistate Licensing System ID in the primary assigned reviewer's user profile.
+          example: '987654'
+        productBundleReferenceId:
+          type: string
+          description: Product bundle ID associated with the application (a single application can open multiple accounts, e.g. "Checking & Savings").
+          example: 'CKSV'
+        totalNumberofAccountsInBundle:
+          type: integer
+          description: Number of accounts in the product bundle that will be opened if the application is approved.
+          example: '2'
+        debitCardSelected:
+          type: boolean
+          description: Booelan indicator for whether the applicant opted in for a debit card.
+          example: 'true'
+        overdraftProtectionSelected:
+          type: boolean
+          description: Boolean indicator for whether the applicant opted in for overdraft protection.
+          example: 'true'
+        numberOfCheckingAccounts:
+          type: integer
+          description: Number of checking accounts in the product bundle that will be opened if the application is approved.
+          example: '1'
+        checkingProductReferenceIds:
+          type: string
+          description: Product ID(s) of the specific checking product(s) in the bundle; may be the same as the productBundleReferenceId if the application is for a single checking account. This field will contain a comma-separated list of IDs when the application is for a multi-account bundle containing more than one checking account.
+          example: 'CZECH'
+        checkingProductNames:
+          type: string
+          description: Full humanized name(s) of the checking product(s) in the bundle. This field will contain a comma-separated list of names when the application is for a multi-account bundle with more than one checking account.
+          example: 'Mic Check One Two One Two'
+        numberOfSavingsAccounts:
+          type: integer
+          description: Number of savings accounts in the product bundle that will be opened if the application is approved.
+          example: '1'
+        savingsProductReferenceIds:
+          type: string
+          description: Product ID(s) of the specific savings product(s) in the bundle; may be the same as the productBundleReferenceId if the application is for a single savings account. This field will contain a comma-separated list of identifiers when the application is for a multi-account bundle containing more than one savings account.
+          example: 'S100'
+        savingsProductNames:
+          type: string
+          description: Full humanized name(s) of the savings product(s) in the bundle. This field will contain a comma-separated list of names when the application is for a multi-account bundle with more than one savings account.
+          example: 'Save the Whales'
+        numberofCdAccounts:
+          type: integer
+          description: Number of certificates of deposit (CDs) in the product bundle that will be opened if the application is approved.
+          example: '1'
+        cdProductReferenceIds:
+          type: string
+          description: Product ID(s) of the specific CD product(s) in the bundle; may be the same as the productBundleReferenceId if the application is for a single CD. This field will contain a comma-separated list of identifiers when the application is for a multi-account bundle containing more than one CD.
+          example: 'CD36'
+        cdProductNames:
+          type: string
+          description: Full humanized name(s) of the CD product(s) in the bundle. This field will contain a comma-separated list of names when the application is for a multi-account bundle with more than one CD.
+          example: 'Certificate of Deposit'
+        cdTerms:
+          type: string
+          description: Chosen term length(s) of the CD(s) in the bundle, appearing as strings such as "12_MONTHS" and "36_MONTHS". This field will contain a comma-separated list of term lengths when the application is for a multi-account bundle with more than one CD.
+          example: '36_MONTHS'
+        numberofHsaAccounts:
+          type: integer
+          description: Number of health savings accounts (HSAs) in the product bundle that will be opened if the application is approved.
+          example: '1'
+        hsaProductReferenceIds:
+          type: string
+          description: Product ID(s) of the specific HSA product(s) in the bundle; may be the same as the productBundleReferenceId if the application is for a single HSA. This field will contain a comma-separated list of identifiers when the application is for a multi-account bundle containing more than one HSA.
+          example: 'HSA'
+        hsaProductNames:
+          type: string
+          description: Full humanized name(s) of the HSA product(s) in the bundle. This field will contain a comma-separated list of names when the application is for a multi-account bundle with more than one HSA.
+          example: 'Health Savings Account'
+        hsaPlanTypes:
+          type: string
+          description: Chosen plan type(s) of the HSA(s) in the bundle, either "INDIVIDUAL" or "FAMILY". This field will contain a comma-separated list of plan types when the application is for a multi-account bundle with more than one HSA.
+          example: 'INDIVIDUAL'
+        totalNumberOfApplicants:
+          type: integer
+          description: Number of applicants on the application (primary, co-, and minor applicants).
+          example: '2'
+        numberOfPrimaryApplicants:
+          type: integer
+          description: Number of primary applicants on the application. Every application should have one primary applicant.
+          example: '1'
+        primaryApplicantEmploymentStatus:
+          type: string
+          description: Employment status of the primary applicant. There are five statuses the applicant can choose from, including "EMPLOYED", "SELF_EMPLOYED", "UNEMPLOYED", "RETIRED", and "NEVER_EMPLOYED".
+          example: 'EMPLOYED'
+        primaryApplicantIsExistingMember:
+          type: boolean
+          description: Boolean indicator that is TRUE if the primary applicant indicated that they are an existing member of the institution.
+          example: 'false'
+        numberOfCoapplicants:
+          type: integer
+          description: Number of coapplicants on the application.
+          example: '1'
+        coapplicantEmploymentStatus:
+          type: string
+          description: Employment status of the coapplicant. There are five statuses the coapplicant can choose from, including "EMPLOYED", "SELF_EMPLOYED", "UNEMPLOYED", "RETIRED", and "NEVER_EMPLOYED".
+          example: 'UNEMPLOYED'
+        coapplicantRejected:
+          type: boolean
+          description: Booelan indicator for whether the coapplicant was rejected via "adverse action notice" (AAN) and the primary applicant elected to proceed nonetheless.
+          example: 'true'
+        numberOfMinorApplicants:
+          type: integer
+          description: Number of minor applicants (i.e. persons under 18) on the application.
+          example: '0'
+        firstUiTrackingEventDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first tracking event associated with the application. The presence of an event should indicate that the applicant at least allowed the UI to load.
+          example: '2021-07-11T18:30:18.000Z'
+        firstPersonalInfoWorkflowEventDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first tracking event in the "Personal Info" workflow.
+          example: '2021-07-11T18:30:18.000Z'
+        hasActivityBeyondInitialDetailsTask:
+          type: boolean
+          description: Boolean indicator compiling all possible downfunnel evidence that the application made it past the initial "Get Applicant Details" task in the "Personal Info" workflow. The field is intended to be used as a more qualified definition of "started", with a value of TRUE identifying applications that were not abandoned on the first page.
+          example: 'true'
+        deviceTypestart:
+          type: string
+          description: The type of device ("Desktop", "Mobile", or "Tablet") used for the application's first user action, which should correspond to clicking "continue" on the first page of the application.
+          example: 'Desktop'
+        firstIdvWorkflowEventDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first tracking event in the "Identity Verfication" workflow.
+          example: '2021-07-11T18:30:18.000Z'
+        firstAccountSetupWorkflowEventDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first tracking event in the "Account Setup" workflow.
+          example: '2021-07-11T18:30:18.000Z'
+        applicationSubmittedDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of application submission.
+          example: '2021-07-11T18:30:18.000Z'
+        applicationSubmissionStatus:
+          type: string
+          description: Supplementary status indicator that may be able to confirm application submission even in the case of a lapse in the event tracking that produces applicationSubmittedDatetime; either "SUBMITTED" or "NOT SUBMITTED".
+          enum: ['SUBMITTED', 'NOT SUBMITTED']
+          example: 'SUBMITTED'
+        firstAutomatedApprovalDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first automated approval decision on the application emitted by the third-party identity verification (IDV) provider (Alloy or Socure). An approval decision will not be emitted unless and until the application is submitted.
+          example: '2021-07-11T18:30:18.000Z'
+        firstAutomatedReferralDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first automated referral on the application, where the third-party identity verification (IDV) provider (Alloy or Socure) flags the application for manual review by a lender-user. A referral decision will not be made unless and until the application is submitted.
+          example: '2021-07-11T18:30:18.000Z'
+        firstAutomatedRejectionDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first automated rejection decision on the application emitted by the third-party identity verification (IDV) provider (Alloy or Socure). A rejection decision can be emitted prior to submission if "adverse action notice" (AAN) is triggered in the "Identity Verification" workflow.
+          example: '2021-07-11T18:30:18.000Z'
+        firstManualApprovalDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first manual approval decision on the application issued by a lender-user. An application cannot be reviewed or approved unless and until the application is submitted.
+          example: '2021-07-11T18:30:18.000Z'
+        firstManualApprovalReviewerUserId:
+          type: string
+          description: Blend user ID of the lender-user who manually approved the application.
+          example: '78be32d9-fa0f-41da-9a99-ef66bdd2d2a5'
+        firstManualApprovalReviewerFullName:
+          type: string
+          description: Full name in the user profile of the lender-user who manually approved the application.
+          example: 'Claude Monet'
+        firstManualApprovalReviewerEmail:
+          type: string
+          description: Email address of the lender-user who manually approved the application.
+          example: 'bigstrokes@impressionism.com'
+        firstManualApprovalReviewerBranchId:
+          type: string
+          description: Branch ID in the user profile of the lender-user who manually approved the application.
+          example: 'French Countryside'
+        firstManualApprovalReviewerEmployeeId:
+          type: string
+          description: Employee ID in the user profile of the lender-user who manually approved the application.
+          example: '5050'
+        firstManualApprovalReviewerNmlsId:
+          type: string
+          description: Nationwide Multistate Licensing System ID in the user profile of the lender-user who manually approved the application.
+          example: '096433'
+        firstManualRejectionDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first manual rejection decision on the application issued by a lender user. An application cannot be reviewed or rejected unless and until the application is submitted.
+          example: '2021-07-11T18:34:57.000Z'
+        firstManualRejectionReviewerUserId:
+          type: string
+          description: Blend user ID of the lender-user who manually rejected the application.
+          example: 'f1e432d6-d7d9-4998-8016-56cca3bcb762'
+        firstManualRejectionReviewerFullName:
+          type: string
+          description: Full name in the user profile of the lender-user who manually rejected the application.
+          example: 'Banksy'
+        firstManualRejectionReviewerEmail:
+          type: string
+          description: Email address of the lender-user who manually rejected the application.
+          example: 'mr.e@graffiti.com'
+        firstManualRejectionReviewerBranchId:
+          type: string
+          description: Branch ID in the user profile of the lender-user who manually rejected the application.
+          example: 'Piccadilly'
+        firstManualRejectionReviewerEmployeeId:
+          type: string
+          description: Employee ID in the user profile of the lender-user who manually rejected the application.
+          example: '884411'
+        firstManualRejectionReviewerNmlsId:
+          type: string
+          description: Nationwide Multistate Licensing System ID in the user profile of the lender-user who manually rejected the application.
+          example: '884411'
+        latestDecisionDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the latest decision on the application, automated or manual, approval or rejection. Referrals are not considered true "decisions" and thus are ignored by this field.
+          example: '2021-05-30T02:25:02.000Z'
+        latestDecisionType:
+          type: string
+          description: Type, either "automated" or "manual", of the latest decision on the appliction, approval or rejection. Referrals are not considered true "decisions" and thus are ignored by this field.
+          example: 'automated'
+        latestDecisionOutcome:
+          type: string
+          description: Outcome, either "approve" or "reject", of the latest decision on the application, automated or manual. Referrals are not considered true "decisions" and thus are ignored by this field.
+          example: 'reject'
+        latestDecisionReviewerUserId:
+          type: string
+          description: Blend user ID of the lender-user who made the latest decision on the application (if manual).
+          example: '90fc97c9-4fbb-479b-82c7-3b1885510cc6'
+        latestDecisionReviewerFullName:
+          type: string
+          description: Full name in the user profile of the lender-user who made the latest decision on the application (if manual).
+          example: 'Bob Ross'
+        latestDecisionReviewerEmail:
+          type: string
+          description: Email address of the lender-user who made the latest decision on the application (if manual).
+          example: 'robert@happylittleclouds.com'
+        latestDecisionReviewerBranchId:
+          type: string
+          description: Branch ID in the user profile of the lender-user who made the latest decision on the application (if manual).
+          example: 'PBS'
+        latestDecisionReviewerEmployeeId:
+          type: string
+          description: Employee ID in the user profile of the lender-user who made the latest decision on the application (if manual).
+          example: '777'
+        latestDecisionReviewerNmlsId:
+          type: string
+          description: Nationwide Multistate Licensing System ID in the user profile of the lender-user who made the latest decision on the application (if manual).
+          example: '234264'
+        applicationApprovalStatus:
+          type: string
+          description: Approval status of the application, either "APPROVED", "REFERRED", or "REJECTED" if the application has reached a decisioning point, or null if not.
+          enum: ['APPROVED', 'REFERRED', 'REJECTED']
+          example: 'APPROVED'
+        accountBookedToCoreDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime that the newly opened account(s) was successfully booked to the institution's core banking system.
+          example: '2021-04-08T11:02:29.000Z'
+        applicationBookingStatus:
+          type: string
+          description: Supplementary status indicator that may be able to confirm that the newly opened account(s) was successfully booked even in the case of a lapse in the event tracking that produces accountBookedToCoreDatetime; either "BOOKED" or null.
+          enum: ['BOOKED']
+          example: 'BOOKED'
+        firstFundingWorkflowEventDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first tracking event in the "Funding" workflow.
+          example: '2021-04-08T11:02:29.000Z'
+        firstOpeningDepositTransactionSubmittedDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of the first deposit transaction submitted through the "Opening Deposit" workflow.
+          example: '2021-04-08T11:02:29.000Z'
+        numberOfNewAccountsFunded:
+          type: integer
+          description: Number of newly opened accounts funded with an initial deposit submitted through the "Opening Deposit" workflow.
+          example: '2'
+        openingDepositAmounts:
+          type: string
+          description: Dollar amount(s) of the opening deposit(s) submitted through the "Opening Deposit" workflow, rounded to the nearest increment of 50. This field will contain a comma-separated list of amounts when multiple newly opened accounts that originated from the same application were funded.
+          example: '1000, 100'
+        totalAmountDeposited:
+          type: integer
+          description: Sum of the dollar amounts (each rounded to the nearest increment of 50 prior to summation) of the opening deposits submitted through the "Opening Deposit" workflow; will be the same as the value in openingDepositAmounts if only one new account was funded.
+          example: '1100'
+        applicationFundingStatus:
+          type: string
+          description: Funding status of the application. This field will be "FUNDED VIA BLEND" if an opening deposit for at least one newly opened account was submitted through the "Opening Deposit" workflow (i.e. if firstOpeningDepositTransactionSubmittedDatetime exists), and null otherwise.
+          enum: ['FUNDED VIA BLEND']
+          example: 'FUNDED VIA BLEND'
+        applicationStatusOverall:
+          type: string
+          description: Overall latest status of the application (i.e. the most down-funnel status reached to date), either "NOT SUBMITTED", "SUBMITTED", "REFERRED", "APPROVED", "REJECTED", "BOOKED", or "FUNDED VIA BLEND".
+          enum: ['NOT SUBMITTED', 'SUBMITTED', 'APPROVED', 'REFERRED', 'REJECTED', 'BOOKED', 'FUNDED VIA BLEND']
+          example: 'FUNDED VIA BLEND'
+        applicationLateTouchDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of when the application was last touched (by either an applicant or a lender-user).
+          example: '2021-06-01T21:39:48.000Z'
+        applicationLastTouchedByUserId:
+          type: string
+          description: Blend user ID of the applicant or lender-user who last touched the application.
+          example: '9b194ac0-c6d3-4f01-942d-96da665c207a'
+        applicationLastUpdatedDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of when the application record was last updated by the system.
+          example: '2021-06-01T21:39:48.000Z'
+        applicationArchivedDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of when the application was archived in Blend.
+          example: '2021-06-01T21:39:48.000Z'
+        applicationDeletedDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of when the application was deleted by a user.
+          example: '2021-06-01T21:39:48.000Z'
+        applicationPurgedDatetime:
+          type: string
+          format: date-time
+          description: UTC datetime of when the application was purged from Blend production.
+          example: '2021-06-01T21:39:48.000Z'
     EventSchema:
       type: object
       required:
@@ -9855,6 +11262,7 @@ components:
         - loanId
         - status
         - eventType
+        - createdAt
         - statusSetAt
       properties:
         eventId:
@@ -9892,10 +11300,33 @@ components:
             - documentEvent.EXPORTED
             - eConsentStatus.UPDATE
             - workflowEvent.COMPLETED
+        createdAt:
+          type: string
+          description: The UTC timestamp of the event creation. ISO format
+          example: '2018-08-24T14:08:13.862594+00:00'
         statusSetAt:
           type: string
           description: The UTC timestamp of the latest status that was posted for the event. ISO format
           example: '2018-08-24T14:08:13.862594+00:00'
+    EventWithDataSchema:
+      allOf:
+        - $ref: '#/components/schemas/EventSchema'
+        - type: object
+          properties:
+            eventData:
+              type: object
+              description: The original data sent when the event was emitted.
+              example:
+                type: 'application'
+                action: 'updated'
+                solution: 'CONSUMER_MORTGAGE'
+                id: '282f3df7-7900-45d5-aafe-b438def61d7c'
+                fields:
+                  solutionSubType:
+                    value: 'MORTGAGE'
+                trigger:
+                  triggeredAt: '2018-06-14T15:08:18.356Z'
+                  type: 'SUBMITTED'
     EventDescribePath:
       type: object
       required:
@@ -10785,7 +12216,7 @@ components:
     PostDocumentType:
       type: string
       description: Valid document types for creating a follow-up of type 'DOCUMENT_REQUEST'
-      enum: ['1003', '4506t', 'ACHDEBIT_AUTHORIZATION', 'ADDRESS_VERIFICATION', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'ALIMONY_INCOME', 'ALIMONY_LIABILITY', 'APPRAISAL', 'APPRAISAL_WAIVER', 'ARTICLES_OF_INCORPORATION', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'BANK_DEPOSIT_SLIP', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'BIRTH_CERTIFICATE', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'BORROWER_CERTIFICATION', 'BORROWER_CONSENT_FORM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'BUSINESS_LICENSE', 'BYLAWS_OPERATING_AGREEMENT', 'CHILD_SUPPORT_INCOME', 'CHILD_SUPPORT_LIABILITY', 'CLOSING_DISCLOSURE', 'COSIGNED_LIABILITY', 'CREDIT_CARD_AUTHORIZATION', 'CREDIT_REPORT', 'DD_214', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'EARNEST_MONEY_DEPOSIT', 'EMPLOYMENT_CONTRACT', 'EMPLOYMENT_OFFER_LETTER', 'ESCROW_WAIVER', 'FAIR_LENDING_NOTICE', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'FLOOD_CERTIFICATION', 'FLOOD_HAZARD_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'GENERATED_ASSET_STATEMENT', 'GIFT_LETTER', 'GOOD_FAITH_ESTIMATE', 'HOA_BILL', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'HOME_INSPECTION_REPORT', 'HUD_VA_ADDENDUM', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'INSURANCE_AGENT_CONTACT_INFO', 'INTENT_TO_PROCEED', 'INVOICE_UTILITY_BILL', 'IRS1041', 'IRS1065', 'IRS1099', 'IRS1120', 'IRS1120_S', 'JUDGMENT', 'K1', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'LETTER_OF_EXPLANATION:SHORT_SALE', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'LLC_BTR_DOC', 'LOAN_ESTIMATE', 'MARRIAGE_CERTIFICATE', 'MEDICAL_LICENSE_DIPLOMA', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MORTGAGE_STATEMENT', 'NATIONAL_IDENTIFICATION', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'NEAREST_LIVING_RELATIVE', 'NOTE', 'OCCUPANCY_CERTIFICATION', 'OTHER', 'PASSPORT', 'PAYOFF_STATEMENT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PEST_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'POWER_OF_ATTORNEY', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'PROOF_OF_LIQUIDATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'PROPERTY_TAX_BILL', 'PURCHASE_AGREEMENT', 'PURCHASE_AGREEMENT_ADDENDUM', 'RATE_LOCK_AGREEMENT', 'RENTAL_AGREEMENT', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RENTAL_SECURITY_DEPOSIT', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RESIDUAL_INCOME_LETTER', 'RETIREMENT_ACCOUNT_STATEMENT', 'RETIREMENT_AWARD_LETTER', 'RETIREMENT_LIQUIDITY_TERMS', 'ROOF_INSPECTION_REPORT', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'SETTLEMENT_STATEMENT_HUD1', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'TAX_TRANSCRIPT', 'TRUST_AGREEMENT', 'VA_AWARD_LETTER', 'VA_CHILD_CARE_CERTIFICATE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'VA_STATEMENT_OF_SERVICE', 'VERIFICATION_OF_MORTGAGE', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_SSN', 'VISA']
+      enum: ['1003', '4506t', 'ACHDEBIT_AUTHORIZATION', 'ADDRESS_VERIFICATION', 'AFFILIATED_BUSINESS_ARRANGEMENT_DISCLOSURE', 'ALIMONY_INCOME', 'ALIMONY_LIABILITY', 'APPRAISAL', 'APPRAISAL_WAIVER', 'ARTICLES_OF_INCORPORATION', 'BANKRUPTCY_DISCHARGE_NOTICE', 'BANKRUPTCY_FILING', 'BANK_DEPOSIT_SLIP', 'BANK_STATEMENT', 'BANK_STATEMENT:_MUTUAL_FUND_ACCOUNT', 'BANK_STATEMENT:_STOCK_ACCOUNT', 'BIRTH_CERTIFICATE', 'BONUS_AND_COMMISSION_DOCUMENTATION', 'BORROWER_CERTIFICATION', 'BORROWER_CONSENT_FORM', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_CASHOUT', 'BORROWER_CORRESPONDENCE:_LETTER_OF_EXPLANATION_OCCUPANCY', 'BORROWER_INCOME_VERIFICATION_CONSENT_FORM', 'BUSINESS_LICENSE', 'BYLAWS_OPERATING_AGREEMENT', 'CHILD_SUPPORT_INCOME', 'CHILD_SUPPORT_LIABILITY', 'CLOSING_DISCLOSURE', 'COSIGNED_LIABILITY', 'CREDIT_CARD_AUTHORIZATION', 'CREDIT_REPORT', 'DD_214', 'DEATH_CERTIFICATE', 'DIVORCE_DECREE', 'EARNEST_MONEY_DEPOSIT', 'EMPLOYMENT_CONTRACT', 'EMPLOYMENT_OFFER_LETTER', 'ESCROW_WAIVER', 'FAIR_LENDING_NOTICE', 'FINANCIAL_STATEMENT:_BALANCE_SHEET', 'FINANCIAL_STATEMENT:_INCOME', 'FLOOD_CERTIFICATION', 'FLOOD_HAZARD_NOTICE', 'FOR_YOUR_PROTECTION_HOME_INSPECTION', 'GENERAL_LOAN_ACKNOWLEDGMENT', 'GENERATED_ASSET_STATEMENT', 'GIFT_LETTER', 'GOOD_FAITH_ESTIMATE', 'HOA_BILL', 'HOMEOWNERS_ASSOCIATION_CERTIFICATION', 'HOME_INSPECTION_REPORT', 'HUD_VA_ADDENDUM', 'IMPORTANT_NOTICE_TO_HOMEBUYER', 'INSURANCE_AGENT_CONTACT_INFO', 'INTENT_TO_PROCEED', 'INVOICE_UTILITY_BILL', 'IRS1041', 'IRS1065', 'IRS1099', 'IRS1120', 'IRS1120_S', 'JUDGMENT', 'K1', 'LETTER_OF_EXPLANATION:_ADDRESS_VERIFICATION', 'LETTER_OF_EXPLANATION:_CREDIT_INQUIRY', 'LETTER_OF_EXPLANATION:_DEROGATORY_CREDIT', 'LETTER_OF_EXPLANATION:_JOB_GAP', 'LETTER_OF_EXPLANATION:_LARGE_DEPOSITS', 'LETTER_OF_EXPLANATION_NAME_VARIATION', 'LETTER_OF_EXPLANATION:SHORT_SALE', 'LLC_BTR_DOC', 'LOAN_ESTIMATE', 'MARRIAGE_CERTIFICATE', 'MEDICAL_LICENSE_DIPLOMA', 'MEDICAL_RESIDENCY_FELLOWSHIP', 'MORTGAGE_STATEMENT', 'NATIONAL_IDENTIFICATION', 'NATIONAL_IDENTIFICATION:_SOCIAL_SECURITY_CARD', 'NATIONAL_IDENTIFICATION_NON_PERMANENT_RESIDENT', 'NEAREST_LIVING_RELATIVE', 'NOTE', 'OCCUPANCY_CERTIFICATION', 'OTHER', 'PASSPORT', 'PAYOFF_STATEMENT', 'PERMANENT_RESIDENT_IDENTIFICATION', 'PEST_INSPECTION_REPORT', 'POOL_INSPECTION_REPORT', 'POWER_OF_ATTORNEY', 'PRE_APPROVAL_LETTER', 'PRE_APPROVAL_LETTER:_PREVIEW', 'PROOF_OF_LIQUIDATION', 'PROPERTY_INSURANCE_POLICY:_CONDOMINIUM', 'PROPERTY_INSURANCE_POLICY:_FLOOD', 'PROPERTY_INSURANCE_POLICY:_GENERAL', 'PROPERTY_INSURANCE_POLICY:_HAZARD', 'PROPERTY_INSURANCE_POLICY:_HOMEOWNERS', 'PROPERTY_INSURANCE_POLICY:_HURRICANE', 'PROPERTY_INSURANCE_POLICY:_INSECT_INFESTATION', 'PROPERTY_INSURANCE_POLICY:_LEASEHOLD', 'PROPERTY_INSURANCE_POLICY:_MASTERPOLICY_ASSN', 'PROPERTY_INSURANCE_POLICY:_MINE_SUBSIDENCE', 'PROPERTY_INSURANCE_POLICY:_PERSONAL_PROPERTY', 'PROPERTY_INSURANCE_POLICY:_STORM', 'PROPERTY_INSURANCE_POLICY:_TORNADO', 'PROPERTY_INSURANCE_POLICY:_VOLCANO', 'PROPERTY_INSURANCE_POLICY:_WIND', 'PROPERTY_TAX_BILL', 'PURCHASE_AGREEMENT', 'PURCHASE_AGREEMENT_ADDENDUM', 'RATE_LOCK_AGREEMENT', 'RENTAL_AGREEMENT', 'RENTAL_INCOME_PROOF_OF_RECEIPT', 'RENTAL_SECURITY_DEPOSIT', 'REQUEST_FOR_COPY_OF_TAX_RETURN:_IRS4506_T', 'RESIDUAL_INCOME_LETTER', 'RETIREMENT_ACCOUNT_STATEMENT', 'RETIREMENT_AWARD_LETTER', 'RETIREMENT_LIQUIDITY_TERMS', 'ROOF_INSPECTION_REPORT', 'SATISFACTION_OF_SECURITY_INSTRUMENT_LIEN_RELEASE', 'SETTLEMENT_STATEMENT_HUD1', 'SOCIAL_SECURITY_PROOF_OF_RECEIPT', 'STATEMENT_CREDIT_CARD_OR_INSTALLMENT_ACCT', 'TAX_TRANSCRIPT', 'TRUST_AGREEMENT', 'VA_AWARD_LETTER', 'VA_CHILD_CARE_CERTIFICATE', 'VA_CERTIFICATE_OF_ELIGIBILITY', 'VA_STATEMENT_OF_SERVICE', 'VERIFICATION_OF_EMPLOYMENT_LETTER', 'VERIFICATION_OF_MORTGAGE', 'VERIFICATION_OF_RENT', 'VERIFICATION_OF_SSN', 'VISA']
     FollowUpComments:
       type: string
       description: Comments displayed to the party on the follow-up
@@ -11086,18 +12517,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/WetsignPostMetadataSchema'
         - type: object
-      required:
-        - documentStatus
       properties:
-        documentStatus:
-          type: object
-          description: Object showing the status for each document. The keys are the documentIds and the values are the statuses.
-          additionalProperties:
-            type: string
-            enum: ['HAS_NOT_VIEWED', 'VIEWED', 'SIGNED']
-          example:
-            9250f84b-c2a1-4cab-b265-bd720485c361: 'VIEWED'
-            cc730ed3-0d46-493d-bd85-8cddc60e45d1: 'SIGNED'
         viewedAt:
           type: string
           description: ISO timestamp
@@ -11192,8 +12612,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
             scaleValue:
@@ -11217,8 +12635,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
             height:
@@ -11244,8 +12660,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
     EsignCheckboxSchema:
@@ -11263,8 +12677,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
             selected:
@@ -11285,8 +12697,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
             required:
@@ -11311,8 +12721,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             radios:
               type: array
               items:
@@ -11350,8 +12758,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
             scaleValue:
@@ -11375,8 +12781,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
             required:
@@ -11397,8 +12801,6 @@ components:
         attributes:
           type: object
           properties:
-            fieldName:
-              type: string
             name:
               type: string
             height:
@@ -11943,6 +13345,24 @@ components:
       properties:
         vaultData:
           $ref: '#/components/schemas/VaultData'
+    VaultData:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/EOriginalVault'
+    EOriginalVault:
+      type: object
+      required:
+        - eOriginal
+      properties:
+        eOriginal:
+          type: object
+          required:
+            - transactionId
+          properties:
+            transactionId:
+              type: string
+              description: The transactionId for the externally managed EOriginal Vault where the ENote is stored.
+              example: '11180467'
     ClosingENotePostRequest:
       type: object
       required:
@@ -12572,24 +13992,6 @@ components:
       oneOf:
         - $ref: '#/components/schemas/SmartDocFixedLoan'
         - $ref: '#/components/schemas/SmartDocArmLoan'
-    VaultData:
-      type: object
-      oneOf:
-        - $ref: '#/components/schemas/EOriginalVault'
-    EOriginalVault:
-      type: object
-      required:
-        - eOriginal
-      properties:
-        eOriginal:
-          type: object
-          required:
-            - transactionId
-          properties:
-            transactionId:
-              type: string
-              description: The transactionId for the externally managed EOriginal Vault where the ENote is stored.
-              example: '11180467'
     GetITPResponse:
       type: object
       required:
@@ -12630,6 +14032,8 @@ components:
           type: string
           example: 'd9b5eb21-904c-4eff-a092-65eaa08bfdbb'
     CustomFieldsObject:
+      type: object
+    CustomMetadataObject:
       type: object
     CreatedByObject:
       type: object
@@ -12705,3 +14109,647 @@ components:
           items:
             type: string
             example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
+    ConsumerLendingNameSchema:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: Tanya
+        middleName:
+          type: string
+          example: Michelle
+        lastName:
+          type: string
+          example: Williams
+        suffix:
+          type: string
+          example: III
+    ConsumerLendingPhoneNumberSchema:
+      required:
+        - type
+        - number
+      type: object
+      properties:
+        type:
+          type: string
+          description: Type of phone number
+          enum: ['HOME', 'WORK', 'MOBILE']
+          example: 'HOME'
+        number:
+          type: number
+          description: Phone number
+          example: 4153504810
+    ConsumerLendingIdentityEvaluationSchema:
+      type: object
+      properties:
+        externalReferenceId:
+          type: string
+          description: Identity evaluation external reference ID
+        status:
+          type: string
+          description: Identity evaluation status
+          enum: ['COMPLETED', 'INCOMPLETE', 'KBA']
+          example: 'KBA'
+        score:
+          type: number
+          description: Identity evaluation score
+          example: 600
+        outcome:
+          type: string
+          description: Identity evaluation outcome
+          enum:
+            - APPROVED
+            - DENIED
+            - MANUAL_REVIEW
+            - MANUAL_REVIEW_NO_STEP_UP
+          example: DENIED
+        providerMetadata:
+          type: object
+          description: Provider metadata
+        userMetadata:
+          type: object
+          description: User metadata
+    ConsumerLendingAddressSchema:
+      type: object
+      description: Address
+      properties:
+        streetAddressLine1:
+          type: string
+          example: '100 Main St'
+        streetAddressLine2:
+          type: string
+          example: 'Apt 10'
+        city:
+          type: string
+          example: 'Chicago'
+        county:
+          type: string
+          example: 'Cook County'
+        state:
+          type: string
+          description: Two-character US state code
+          example: 'IL'
+        zipCode:
+          type: string
+          description: Five-digit US zip code
+          example: '60007'
+    ConsumerLendingResidenceSchema:
+      type: object
+      description: Residence
+      required:
+        - type
+        - address
+      properties:
+        type:
+          type: string
+          enum: ['CURRENT', 'MAILING', 'FORMER', 'OTHER']
+          example: 'CURRENT'
+        residencyType:
+          type: string
+          description: Residency type
+          enum: ['OWN', 'RENT', 'LIVING_RENT_FREE']
+          example: 'RENT'
+        address:
+          $ref: '#/components/schemas/ConsumerLendingAddressSchema'
+        moveInDate:
+          type: string
+          format: date-time
+          description: Move in date in ISO 8601 format
+          example: '2019-01-01T00:00:00.000Z'
+        moveOutDate:
+          type: string
+          format: date-time
+          description: Move out date in ISO 8601 format
+          example: '2020-06-30T00:00:00.000Z'
+        residencyDurationYears:
+          type: number
+          description: Number of years in residency
+          example: 1
+        residencyDurationMonths:
+          type: number
+          description: Number of months (in excess of number of years) in residency
+          example: 6
+        monthlyRent:
+          type: number
+          description: Monthly rent
+          example: 1000
+    ConsumerLendingOwnedPropertySchema:
+      type: object
+      description: Owned property
+      required:
+        - type
+        - usageType
+        - address
+        - presentMarketValue
+      properties:
+        type:
+          type: string
+          enum:
+            - SINGLE_FAMILY
+            - CONDOMINIUM
+            - TOWNHOUSE
+            - TWO_TO_FOUR_UNIT_PROPERTY
+            - COOPERATIVE
+            - MULTIFAMILY
+            - MANUFACTURED_OR_MOBILE_HOME
+            - COMMERCIAL_NON_RESIDENTIAL
+            - MIXED_USE_RESIDENTIAL
+            - FARM
+            - HOME_AND_BUSINESS_COMBINED
+            - LAND
+          example: 'SINGLE_FAMILY'
+        usageType:
+          type: string
+          description: Usage type
+          enum:
+            - PRIMARY_RESIDENCE
+            - SECOND_HOME
+            - PRIMARY_AND_INVESTMENT
+            - INVESTMENT
+          example: 'PRIMARY_RESIDENCE'
+        dispositionType:
+          type: string
+          description: Disposition type
+          enum:
+            - RETAIN_FOR_PRIMARY_OR_SECONDARY_RESIDENCE
+            - RETAIN_FOR_RENTAL
+            - PENDING_SALE
+            - SOLD
+          example: 'PENDING_SALE'
+        address:
+          $ref: '#/components/schemas/ConsumerLendingAddressSchema'
+        presentMarketValue:
+          type: number
+          description: Present market value
+        monthlyMortgagePayments:
+          type: array
+          items:
+            type: number
+          description: Monthly mortgage payments
+          example: [875, 230]
+        mortgageBalance:
+          type: number
+          description: Mortgage balance
+          example: 21000
+        grossRentalIncome:
+          type: number
+          description: Gross rental income
+          example: 340
+    ConsumerLendingEmploymentOwnershipSchema:
+      type: object
+      description: Employer ownership
+      properties:
+        ownershipType:
+          type: string
+          description: Ownership type
+          enum:
+            - Sole Proprietor
+            - LLC
+            - S-Corp
+            - C-Corp
+            - Partnership
+          example: 'LLC'
+        ownershipPercentage:
+          type: number
+          description: Ownership percentage
+          example: 100
+    ConsumerLendingIncomeSchema:
+      type: object
+      description: Income
+      properties:
+        type:
+          type: string
+          enum:
+            - BASE
+            - BONUS
+            - OVERTIME
+            - COMMISSIONS
+            - SOCIAL_SECURITY
+            - PENSION
+            - ALIMONY
+            - ANNUITY
+            - DEFERRED_COMPENSATION
+            - DIVIDENDS_INTEREST
+            - OTHER
+          example: 'BASE'
+        yearlyIncome:
+          type: number
+          description: Yearly income
+          example: 80000
+        description:
+          type: string
+    ConsumerLendingEmployerSchema:
+      type: object
+      description: Employer
+      required:
+        - status
+        - address
+      properties:
+        status:
+          type: string
+          enum: ['CURRENT', 'PREVIOUS']
+          example: 'CURRENT'
+        type:
+          type: string
+          enum:
+            - 'GENERAL_EMPLOYMENT'
+            - 'MILITARY'
+            - 'SELF_EMPLOYED'
+            - 'INDEPENDENT_CONTRACTOR'
+          example: 'GENERAL_EMPLOYMENT'
+        name:
+          type: string
+        address:
+          $ref: '#/components/schemas/ConsumerLendingAddressSchema'
+        phoneNumber:
+          type: number
+        title:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+          description: Start date in ISO 8601 format
+          example: '2020-01-01T00:00:00.000Z'
+        endDate:
+          type: string
+          format: date-time
+          description: End date in ISO 8601 format
+          example: '2021-03-31T00:00:00.000Z'
+        hoursPerWeek:
+          type: number
+          description: Hours per week
+        monthsOnJob:
+          type: number
+          description: Number of months on the job
+        yearsInProfession:
+          type: number
+          description: Number of years in profession
+        ownership:
+          type: object
+          $ref: '#/components/schemas/ConsumerLendingEmploymentOwnershipSchema'
+        incomes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingIncomeSchema'
+    ConsumerLendingLiabilitySchema:
+      type: object
+      description: Liability
+      required:
+        - type
+        - monthlyPayment
+        - monthsLeftToPay
+        - unpaidBalance
+      properties:
+        type:
+          type: string
+          enum: ['ALIMONY', 'CHILD_SUPPORT', 'SEPARATE_MAINTENANCE_PAYMENT']
+          example: 'CHILD_SUPPORT'
+        monthlyPayment:
+          type: number
+          description: Monthly payment
+          example: 2500
+        monthsLeftToPay:
+          type: number
+          description: Months left to pay
+          example: 24
+        unpaidBalance:
+          type: number
+          description: Unpaid balance
+          example: 60000
+    ConsumerLendingDeclarationSchema:
+      type: object
+      description: Declaration
+      required:
+        - type
+        - indicator
+      properties:
+        type:
+          type: string
+          example: 'US_CITIZEN'
+        indicator:
+          type: boolean
+          example: false
+        explanation:
+          type: string
+    ConsumerLendingBorrowerSchema:
+      type: object
+      description: Borrower
+      required:
+        - id
+        - type
+        - name
+        - email
+        - phoneNumbers
+      properties:
+        id:
+          type: string
+          format: guid
+          description: Borrower ID
+          example: '52843951-c41f-44b7-a33c-2e499ce75029'
+        memberId:
+          type: string
+          description: Member ID
+        type:
+          type: string
+          description: Borrower type
+          enum: ['BORROWER', 'COBORROWER']
+          example: 'BORROWER'
+        name:
+          $ref: '#/components/schemas/ConsumerLendingNameSchema'
+        email:
+          type: string
+          example: 'borrower@mail.com'
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingPhoneNumberSchema'
+        birthDate:
+          type: string
+          format: date-time
+          description: Birth date in ISO 8601 format
+          example: '1990-11-11T00:00:00.000Z'
+        ssn:
+          type: string
+          description: Social Security Number
+          example: '123-45-6789'
+        creditReport:
+          type: string
+          description: Credit report
+          example: '<xml>...</xml>'
+        identityEvaluations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingIdentityEvaluationSchema'
+        citizenshipStatus:
+          type: string
+          enum: ['US_CITIZEN', 'PERMANENT_RESIDENT_ALIEN', 'NON_PERMANENT_RESIDENT_ALIEN']
+          example: 'US_CITIZEN'
+        maritalStatus:
+          type: string
+          description: Marital Status
+          enum:
+            - MARRIED
+            - NOT_PROVIDED
+            - SEPARATED
+            - UNKNOWN
+            - UNMARRIED
+          example: UNMARRIED
+        residences:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingResidenceSchema'
+        ownedProperties:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingOwnedPropertySchema'
+        employers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingEmployerSchema'
+        otherIncomes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingIncomeSchema'
+        liabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingLiabilitySchema'
+        declarations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingDeclarationSchema'
+        consentToLenderContactGiven:
+          type: boolean
+          description: If set to true, consent is given to lender contact
+          example: false
+        econsent:
+          $ref: '#/components/schemas/EconsentSchema'
+        creditConsent:
+          $ref: '#/components/schemas/EconsentSchema'
+        creditConsentSoft:
+          $ref: '#/components/schemas/EconsentSchema'
+    ConsumerLendingProductId:
+      type: string
+      description: Only applicable if the consumer lending loan type is CREDIT_CARD
+      example: 'b2006a70-a19b-4b7f-973d-3a561e159060'
+    ConsumerLendingLoanIdentifiersSchema:
+      type: object
+      properties:
+        losId:
+          $ref: '#/components/schemas/LosId'
+        crmId:
+          $ref: '#/components/schemas/CrmId'
+        referenceNumber:
+          $ref: '#/components/schemas/ReferenceNumber'
+    ConsumerLendingLoanType:
+      type: string
+      enum: ['AUTO', 'SPECIALTY_VEHICLE', 'PERSONAL_LOAN', 'PERSONAL_LOC', 'CREDIT_CARD']
+      example: 'AUTO'
+    ConsumerLendingLoanPurposeType:
+      type: string
+      enum:
+        - 'PURCHASE'
+        - 'REFINANCE'
+        - 'LEASE_BUYOUT'
+        - 'FUTURE_USE'
+        - 'DEBT_CONSOLIDATION'
+        - 'HOME_IMPROVEMENT'
+        - 'MEDICAL_EXPENSES'
+        - 'OTHER'
+        - 'LIVING_EXPENSES'
+        - 'CASH_NEED'
+        - 'EDUCATION_EXPENSES'
+        - 'ESTABLISH_CREDIT'
+        - 'FAMILY_EVENT'
+        - 'GIFT'
+        - 'MAJOR_PURCHASES'
+        - 'MEDICAL_NURSING_CARE'
+        - 'TAXES_LEGAL_FEES'
+        - 'VACATION_TRIP'
+        - 'VEHICLE_REPAIR'
+      example: 'PURCHASE'
+    ConsumerLendingRefinanceType:
+      type: string
+      description: Only applicable if loanPurposeType is REFINANCE
+      enum: ['LOAN', 'CASH_OUT']
+      example: 'LOAN'
+    ConsumerLendingCollateralSchema:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - CD
+            - SAVINGS
+            - AUTO
+            - SPECIALTY_VEHICLE
+            - STOCK
+          example: AUTO
+        primary:
+          type: boolean
+        vehicle:
+          $ref: '#/components/schemas/ConsumerLendingVehicleSchema'
+        account:
+          $ref: '#/components/schemas/ConsumerLendingAccountSchema'
+    ConsumerLendingAccountSchema:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+        holdAmount:
+          type: number
+          example: 4320.75
+    ConsumerLendingVehicleSchema:
+      type: object
+      properties:
+        condition:
+          type: string
+          enum: ['NEW', 'USED']
+          example: 'NEW'
+        purchaseLocation:
+          type: string
+          enum: ['DEALERSHIP', 'PRIVATE_PARTY']
+          example: 'DEALERSHIP'
+        category:
+          type: string
+          enum: ['BOAT', 'RV', 'POWERSPORT']
+          example: 'POWERSPORT'
+        type:
+          type: string
+          enum:
+            - MOTORHOME
+            - TRAVEL_TRAILER
+            - CAMPING_TRAILER
+            - TRUCK_CAMPER
+            - PARK_MODEL
+            - UTILITY_SPECIALTY_TRAILER
+            - BOAT
+            - PERSONAL_WATERCRAFT
+            - OUTBOARD_MOTOR
+            - BOAT_TRAILER
+            - MOTORCYCLE
+            - ATV
+            - MOTORCYCLE_SIDE_CAR
+            - SNOWMOBILE
+            - MOTORCYCLE_TRAILER
+            - SCOOTER
+            - UTV
+          example: 'ATV'
+        year:
+          type: number
+          example: 2002
+        make:
+          type: string
+          example: 'Honda'
+        model:
+          type: string
+          example: 'Civic'
+        trim:
+          type: string
+          example: 'EX'
+        mileage:
+          type: number
+          example: 125000
+        valuation:
+          type: number
+          description: The property's value in dollars and cents
+          example: 3400.75
+        identificationNumber:
+          type: string
+        salesPrice:
+          description: Sales price for the loan
+          type: number
+          example: 14500
+    ConsumerLendingApplicationDecisionSchema:
+      type: object
+      description: Application decision
+      required:
+        - updatedDate
+        - status
+      properties:
+        updatedDate:
+          type: string
+          format: date-time
+          example: '2021-05-11T10:45:23.456Z'
+        status:
+          type: string
+          enum: ['APPROVE', 'IN_REVIEW', 'DECLINE']
+          example: 'APPROVE'
+        amount:
+          type: number
+          example: 100000.50
+        apr:
+          type: number
+          example: 4.75
+        monthlyPayment:
+          type: number
+          example: 2530.75
+        termMonths:
+          type: number
+          example: 120
+        productOffering:
+          type: string
+        policySnapshot:
+          type: object
+        attributes:
+          type: object
+        result:
+          type: object
+    ConsumerLendingApplicationSchema:
+      type: object
+      description: A consumer lending application
+      required:
+        - id
+        - loanType
+        - borrowers
+      properties:
+        id:
+          $ref: '#/components/schemas/ApplicationId'
+        productId:
+          $ref: '#/components/schemas/ConsumerLendingProductId'
+        loanIdentifiers:
+          $ref: '#/components/schemas/ConsumerLendingLoanIdentifiersSchema'
+        loanType:
+          $ref: '#/components/schemas/ConsumerLendingLoanType'
+        loanPurposeType:
+          $ref: '#/components/schemas/ConsumerLendingLoanPurposeType'
+        refinanceType:
+          $ref: '#/components/schemas/ConsumerLendingRefinanceType'
+        borrowers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingBorrowerSchema'
+        loanAmount:
+          $ref: '#/components/schemas/LoanAmount'
+        loanTermMonths:
+          type: number
+          description: The term of the loan in months
+          example: 36
+        isFlexibleLoanTerms:
+          type: boolean
+          description: Whether the applicant is flexible in their loan amount and terms
+          example: false
+        lender:
+          type: string
+        collaterals:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerLendingCollateralSchema'
+        primaryAssignedLoanOfficer:
+          type: object
+          properties:
+            fullName:
+              type: string
+              example: 'Michael Henry'
+            branchId:
+              type: string
+            employeeId:
+              type: string
+        decision:
+          $ref: '#/components/schemas/ConsumerLendingApplicationDecisionSchema'
+        promoCode:
+          type: string
+        appSource:
+          description: The tag corresponding to a marketing campaign. This identifier can be used to gauge which links are most effective within certain campaigns.
+          type: string
+          example: 'ORGANIC_LEAD'
