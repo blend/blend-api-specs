@@ -1,0 +1,4111 @@
+{
+	"info": {
+		"_postman_id": "dc36609d-b4b3-4858-8c8a-26df400b8741",
+		"name": "4.1.0 & Custom Fields Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Regression",
+			"item": [
+				{
+					"name": "Applications",
+					"item": [
+						{
+							"name": "List Parties for an Application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/parties",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"parties"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Underwriting Results for an Application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/underwriting-results",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"underwriting-results"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Post a Home Lending Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"applicationId\", jsonData.id);",
+											"",
+											"pm.response.to.have.status(200);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"customFields\": {\n          \"LosParty3\": \"0000\"\n          },\n    \"party\" : {\n        \"email\": \"vaidehi+tt2@blend.com\",\n        \"name\": {\n            \"firstName\": \"TT2\",\n            \"lastName\": \"TT2 Last\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Post Export Status",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"IN_PROGRESS\",\n    \"reason\": \"xyz\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/export-status",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"export-status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Override All Current Assignees on an Application",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"assignees\": [\n        {\n            \"role\": \"PRIMARY_ASSIGNEE\",\n            \"userId\": \"276f4daa-7fdf-4719-b27c-f0446b166ccf\"\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/assignees",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"assignees"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Post LOS Milestones",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"losMilestones\": [\n        {\n            \"applicationId\": \"{{applicationId}}\",\n            \"losMilestone\": \"SUBMITTED\"\n        }\n    ],\n    \"override\": true\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/los-milestones",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"los-milestones"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List LOS Milestones for an Application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true,
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/los-milestones",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"los-milestones"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Patch LOS Milestone on an Application",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"losMilestone\": \"UNDERWRITING\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/los-milestones",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"los-milestones"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Application Data",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Intent to Proceed",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/itp",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"itp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Post Intent to Proceed",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"borrowerId\": \"9c8eded4-7cdf-4637-813a-2aa5946f68e6\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/itp",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"itp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export Application Data",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/file-export?format=mismo",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"file-export"
+									],
+									"query": [
+										{
+											"key": "format",
+											"value": "mismo"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Borrower Positions on an Application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/borrower-positions",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"borrower-positions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Put Borrower Positions on an Application",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"borrowerPairs\": [\n        {\n            \"primaryBorrowerId\": \"6916221e-7aa2-4057-bb2c-6e2a274e4365\",\n            \"secondaryBorrowerId\": \"9c8eded4-7cdf-4637-813a-2aa5946f68e6\"\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/borrower-positions",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"borrower-positions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List the Assigned Users on an Application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/assignees",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"assignees"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Patch the Assigned Users on an Application",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"assignees\": [\n        {\n            \"role\": \"PRIMARY_ASSIGNEE\",\n            \"userId\": \"276f4daa-7fdf-4719-b27c-f0446b166ccf\"\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/assignees",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"assignees"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Application",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Applications",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Application Export Statuses",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/export-statuses?ids={{applicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"export-statuses"
+									],
+									"query": [
+										{
+											"key": "ids",
+											"value": "{{applicationId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Patch Application Data",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"referrerUserId\": \"e6da2d58-7a41-4e1d-9e69-0af9f7c0cad2\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Documents for an Application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"documents"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Documents",
+					"item": [
+						{
+							"name": "List Documents",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Document Export Statuses",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}/export-statuses",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents",
+										"{{documentId}}",
+										"export-statuses"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Attach a Document to an Application",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var a1 =   {\"customFields\": ",
+											"            {",
+											"                \"TTTT1\": \"4T1\"",
+											"             }",
+											"          },",
+											"",
+											"a2 = JSON.stringify(a1)",
+											"postman.setEnvironmentVariable(\"myJSON\", a2);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "multipart/form-data; boundary=---011000010111000001101001"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": "/Users/vaidehi/Downloads/ADP_PayStub.pdf"
+										},
+										{
+											"key": "customFields",
+											"value": "{\"3\":\"4\"}",
+											"type": "text"
+										},
+										{
+											"key": "applicationId",
+											"value": "{{applicationId}}",
+											"type": "text"
+										},
+										{
+											"key": "status",
+											"value": "SIGNATURE_REQUESTED",
+											"type": "text"
+										},
+										{
+											"key": "type",
+											"value": "IRS1040",
+											"type": "text"
+										},
+										{
+											"key": "shareWithAllParties",
+											"value": "true",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "name",
+											"value": "BorTest",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update a Document's Export Status",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"exportedTime\": \"2021-01-23T20:07:27+00:00\",\n  \"customFields\": {\n      \"ed56s\": \"5\"\n  }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents",
+										"{{documentId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Document Data",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents",
+										"{{documentId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Document Metadata",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}/metadata",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents",
+										"{{documentId}}",
+										"metadata"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Parties",
+					"item": [
+						{
+							"name": "Remove a Party from a Specific Application",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"parties",
+										"{{partyId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update a Party's Details",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"customFields\": {\n            \"PartyNum\": \"P01/09\"\n  }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"parties",
+										"{{partyId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add a Party to a Specific Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"partyId\", jsonData.id);",
+											"",
+											"pm.response.to.have.status(200);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"applicationId\": \"4ce685f2-357c-4da5-99ea-a15da3479a0d\",\n  \"customFields\": {\n          \"LosPartyId\": \"GOGE\"\n          },\n        \"email\": \"vaidehi+TT1000000@blend.com\",\n        \"name\": {\n            \"firstName\": \"TT1000000\",\n            \"lastName\": \"TT1000000 Last\"\n        },\n        \"type\": \"COBORROWER\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/parties",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"parties"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Employers to a Party",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"employers\": [\n        {\n            \"status\": \"CURRENT\",\n            \"name\": \"Blend\",\n            \"title\": \"Quality Engineer\",\n            \"yearsInProfession\": 7,\n            \"type\": \"GENERAL_EMPLOYMENT\",\n            \"startDate\": \"2017-07-10\",\n            \"address\": {\n                \"streetAddressLine1\": \"415 Kearny Street\",\n                \"streetAddressLine2\": \"\",\n                \"city\": \"San Francisco\",\n                \"state\": \"CA\",\n                \"zipCode\": \"94108\"\n            },\n            \"incomes\": [\n                {\n                    \"type\": \"BASE\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 100000.75\n                    }\n                },\n                {\n                    \"type\": \"BONUS\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 2120.59\n                    }\n                },\n                {\n                    \"type\": \"OVERTIME\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 6500.8333334\n                    }\n                },\n                {\n                    \"type\": \"COMMISSIONS\",\n                    \"yearlyIncome\": {\n                        \"code\": \"USD\",\n                        \"amount\": 329.1666667\n                    }\n                }\n            ],\n            \"phoneNumber\": 158.85\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}/employers",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"parties",
+										"{{partyId}}",
+										"employers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List a Party's Employers",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}/employers",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"parties",
+										"{{partyId}}",
+										"employers"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Eclose",
+					"item": [
+						{
+							"name": "List Closings",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "YXBpLXNlY3JldC10b2tlbjo2NTExODY3NmYxNzQ0ZjUyYTVhNjczYWNiYjcwYTBjNzpFYUY2S3ZpdklieE5XSWRzcDBic09kdDdsZW8yOGxEVA==",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Closing Documents",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "YXBpLXNlY3JldC10b2tlbjo2NTExODY3NmYxNzQ0ZjUyYTVhNjczYWNiYjcwYTBjNzpFYUY2S3ZpdklieE5XSWRzcDBic09kdDdsZW8yOGxEVA==",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/documents?ids={{docId_b}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"documents"
+									],
+									"query": [
+										{
+											"key": "ids",
+											"value": "{{docId_b}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove the eNote from a Closing",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/enote",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"enote"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create a Closing",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"closingId\", jsonData.id);",
+											"",
+											"pm.response.to.have.status(200);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"applicationId\" : \"{{applicationId}}\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Submit Closing",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sourceType\" : \"LENDER\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/send",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"send"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get a Specific Closing",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update a Specific Closing",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"closingType\": \"HYBRID\",\n  \"closingDate\": \"2021-01-28T12:00:00-09:00\",\n  \"closingParties\": [\n    {\n      \"email\": \"smagelowitz+title@blend.com\",\n      \"partyType\": \"SETTLEMENT\",\n      \"firstName\": \"Steve\",\n      \"lastName\": \"Title\"\n    }\n  ]\n}\n\n"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Externally Managed ENote",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"vaultData\": {\n          \"eOriginal\": {\n              \"transactionId\" : \"11200139\"\n          }\n  }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/external-enote",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"external-enote"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Audit endpoint to verify externally managed enote was added; \"vaultTransactions\" array of objects - \"isExternallyManaged\" field (Needs internal API user creds for Eclose service)",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "wvGnsNGTUNTd4jgKX4WCd/PzS+KcQjtJ",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "eclose-5e10e26d368e@int.blendlabs.com",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/audit/closings/{{closingId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"audit",
+										"closings",
+										"{{closingId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create eNote for Closing",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/enote",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"enote"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Initiate Closing Redraw",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/redraw",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"redraw"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Send or Re-Send Pre-Closing Documents",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/pre-closing-documents/send",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"pre-closing-documents",
+										"send"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add or Update Draft Pre-closing Documents",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"documents\": [\n\t\t{\n\t\t\t\"documentID\": \"{{docId_a}}\"\n\t\t}\n\t]\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/pre-closing-documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"pre-closing-documents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add or Update Closing Documents",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"documents\": [\n\t\t{\n\t\t\t\"documentID\": \"{{docId_b}}\",\n\t\t\t\"sourceType\": \"LENDER\"\n\t\t}\n\t]\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"documents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create eNote for Closing",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"smartDocTemplateData\": {\n    \"fixedLoan\": {\n      \"formId\": \"3200e\",\n      \"scheduledFirstPaymentDate\": \"2020-12-12\",\n      \"paymentRemittanceDay\": 15,\n      \"propertyAddress\": {\n        \"unparsedStreetAddress\": {\n          \"addressLineText\": \"888 Rainbow Lane\"\n        },\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"postalCode\": \"10001\",\n        \"county\": \"NEW YORK\"\n      },\n      \"notePayToAddress\": {\n        \"streetAddress\": \"888 Rainbow Lane\",\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"postalCode\": \"10001\"\n      },\n      \"closingDocumentInfo\": {\n        \"lender\": {\n          \"unparsedName\": \"Gabriel Lender Corp\",\n          \"contactName\": \"Gabriel Lenderson\",\n          \"nmlsId\": 12345\n        },\n        \"loanOriginator\": {\n          \"unparsedName\": \"Gabriel Originatorson\",\n          \"nmlsId\": 123456\n        },\n        \"executionDate\": \"2020-08-20\",\n        \"executionCity\": \"New York\",\n        \"executionState\": \"NY\"\n      },\n      \"noteRatePercent\": 30.5,\n      \"loanMaturityDate\": \"2030-12-12\",\n      \"originalPrincipalAndInterestPaymentAmount\": 12000,\n      \"lateChargeGracePeriod\": 15,\n      \"lateChargeRate\": 10\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/enote",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"enote"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "4.1.0",
+			"item": [
+				{
+					"name": "Account Opening",
+					"item": [
+						{
+							"name": "Get Account Application Data",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "blend-c4b09bb2c0c9@ext.blendlabs.com",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "lewsHrS/BONUG800ZoZaiGxd6sHkFJTh",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "blend-borrower~master-consumer-banking",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/account-applications/{{accountOpeningApplicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"account-applications",
+										"{{accountOpeningApplicationId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Account Application Data",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "lewsHrS/BONUG800ZoZaiGxd6sHkFJTh",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "blend-c4b09bb2c0c9@ext.blendlabs.com",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "blend-borrower~master-consumer-banking"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"integrationEvent\": {\n        \"type\": \"applicationSubmitted\",\n        \"status\": \"FAILED_RETRYABLE\"\n    }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/account-applications/{{accountOpeningApplicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"account-applications",
+										"{{accountOpeningApplicationId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Applications",
+					"item": [
+						{
+							"name": "Get verified employers from an application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/employers/verified?applicationId={{applicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"employers",
+										"verified"
+									],
+									"query": [
+										{
+											"key": "applicationId",
+											"value": "{{applicationId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Initiate Reverification of Employers",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"applicationId\": \"{{applicationId}}\",\n  \"employerIds\": [\"da8622cf-8790-4e14-8e60-7a7ef395b2fb\"],\n  \"partyId\": \"ba334e8c-c817-4728-a989-f956bf767f94\"\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/employers/reverify",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"employers",
+										"reverify"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Eclose",
+					"item": [
+						{
+							"name": "Update a Specific Closing Copy",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"closingType\": \"HYBRID\",\n  \"closingDate\": \"2021-01-28T12:00:00-09:00\",\n  \"closingParties\": [\n    {\n      \"email\": \"smagelowitz+title@blend.com\",\n      \"partyType\": \"SETTLEMENT\",\n      \"firstName\": \"Steve\",\n      \"lastName\": \"Title\"\n    }\n  ]\n}\n\n"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Externally Managed ENote",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"vaultData\": {\n          \"eOriginal\": {\n              \"transactionId\" : \"11200139\"\n          }\n  }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingid}}/external-enote",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingid}}",
+										"external-enote"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Send or Re-Send Pre-Closing Documents",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/pre-closing-documents/send",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"pre-closing-documents",
+										"send"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add or Update Draft Pre-closing Documents",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"documents\": [\n\t\t{\n\t\t\t\"documentID\": \"{{docId_a}}\"\n\t\t}\n\t]\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/close/closings/{{closingId}}/pre-closing-documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"close",
+										"closings",
+										"{{closingId}}",
+										"pre-closing-documents"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Reporting",
+					"item": [
+						{
+							"name": "Retrieve Borrower Users",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/reporting/borrowers",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"reporting",
+										"borrowers"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Custom Fields",
+			"item": [
+				{
+					"name": "Applications",
+					"item": [
+						{
+							"name": "Get Applications",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Applications using `custom_field_query` query parameter",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications?custom_field_query=field2=value2&field5=value5",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications"
+									],
+									"query": [
+										{
+											"key": "custom_field_query",
+											"value": "field2=value2"
+										},
+										{
+											"key": "field5",
+											"value": "value5"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Post a Home Lending Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = JSON.parse(responseBody);",
+											"",
+											"if(pm.response.code === 200) {",
+											"    postman.setEnvironmentVariable(\"applicationId\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"customFields\": {\n          \"fgd\":\"kjlf\"\n          },\n    \"party\" : {\n        \"email\": \"vaidehi+test1@blend.com\",\n        \"name\": {\n            \"firstName\": \"Test1\",\n            \"lastName\": \"Test1 Test1Last\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Application Data",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Patch Application Data",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"customFields\": {\n        \"fieldz\": \"valuez\"}\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Documents for an Application",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/home-lending/applications/{{applicationId}}/documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"home-lending",
+										"applications",
+										"{{applicationId}}",
+										"documents"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Documents",
+					"item": [
+						{
+							"name": "List Documents",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Document Metadata",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "blend-api-version",
+										"value": "{{apiVersion}}",
+										"type": "text"
+									},
+									{
+										"key": "blend-target-instance",
+										"value": "{{instance}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}/metadata",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents",
+										"{{documentId}}",
+										"metadata"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Attach a Document to an Application",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "Content-Type: multipart/form-data; boundary=---011000010111000001101001",
+										"disabled": true
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "type",
+											"value": "OTHER",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "file",
+											"type": "file",
+											"src": "/Users/vaidehi/Downloads/ADP_All correct.pdf"
+										},
+										{
+											"key": "status",
+											"value": "SIGNATURE_REQUESTED",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "applicationId",
+											"value": "{{applicationId}}",
+											"type": "text"
+										},
+										{
+											"key": "customFields",
+											"value": "{\"rttyty\":\"trry\",\"drrttf\":\"rt\"}",
+											"type": "text"
+										},
+										{
+											"key": "losType",
+											"value": "Verification_of_Income_Type",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update a Document's Export Status",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"exportedTime\": \"2021-01-23T20:07:27+00:00\",\n  \"customFields\": {\n      \"eds\": \"fes\"\n  }\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/documents/{{documentId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"documents",
+										"{{documentId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Parties",
+					"item": [
+						{
+							"name": "Update a Party's Details",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{bearer-token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "blend-api-version",
+										"type": "text",
+										"value": "{{apiVersion}}"
+									},
+									{
+										"key": "blend-target-instance",
+										"type": "text",
+										"value": "{{instance}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"customFields\": {\n        \"fg4f\": \"re4t\"}\n}"
+								},
+								"url": {
+									"raw": "https://api.sandbox.centrio.com/parties/{{partyId}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"sandbox",
+										"centrio",
+										"com"
+									],
+									"path": [
+										"parties",
+										"{{partyId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
